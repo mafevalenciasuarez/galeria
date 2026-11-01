@@ -106,6 +106,66 @@
       "reused_twice_pct": 50,
       "reused_three_times_pct": 33,
       "denominator_note": "El denominador de los porcentajes no está claro (6 o 10 participantes)."
+    },
+    "access_states": {
+      "total": 33,
+      "no_internet": 23,
+      "internet_not_installed": 4,
+      "installed": 6,
+      "note": "Derivado de las cifras del artículo: 33 matriculados, 10 con internet, 6 instalaron. Verificar en el texto.",
+      "labels": {
+        "no_internet": "Sin internet",
+        "internet_not_installed": "Con internet, sin instalar",
+        "installed": "Instaló la aplicación"
+      },
+      "toggle_label": "¿Quién pudo usarla?",
+      "caption": "Un muñeco por estudiante matriculado. Posición ilustrativa."
+    },
+    "map": {
+      "svg": "maps/costa-rica-provinces.svg",
+      "viewBox": [
+        0,
+        0,
+        453.2,
+        434.2
+      ],
+      "provinces": [
+        {
+          "id": "prov-guanacaste",
+          "name": "Guanacaste"
+        },
+        {
+          "id": "prov-alajuela",
+          "name": "Alajuela"
+        },
+        {
+          "id": "prov-heredia",
+          "name": "Heredia"
+        },
+        {
+          "id": "prov-limon",
+          "name": "Limón"
+        },
+        {
+          "id": "prov-sanjose",
+          "name": "San José"
+        },
+        {
+          "id": "prov-cartago",
+          "name": "Cartago"
+        },
+        {
+          "id": "prov-puntarenas",
+          "name": "Puntarenas"
+        }
+      ],
+      "school": {
+        "anchor_id": "school-pin-anchor",
+        "province_id": "prov-alajuela",
+        "label": "Nuestra escuela (San Rafael de Alajuela)",
+        "note": "Ubicación aproximada."
+      },
+      "data_credit": "Natural Earth. (s. f.). Admin 1 – States, Provinces [Conjunto de datos]. https://www.naturalearthdata.com/ (dominio público)"
     }
   },
   "transfer": {
@@ -114,18 +174,20 @@
   },
   "audio": {
     "file": "audio/sala-3.mp3",
-    "script_draft": "Esta sala muestra una aplicación de realidad aumentada hecha para niños de cuarto grado en Costa Rica que casi no tenían internet. Lo valioso es el diseño: funciona sin conexión y usa dibujos y voces de los propios estudiantes. Pero de treinta y tres niños, solo seis pudieron instalarla. Ese número cuenta tanto como los resultados positivos.",
+    "script_draft": "Esta sala muestra una aplicación de realidad aumentada hecha para niños de cuarto grado en Costa Rica que casi no tenían internet. Arrastren la lente sobre el mapa: la provincia se levanta en tres dimensiones. Pero miren la guirnalda: de treinta y tres niños, solo seis pudieron instalarla. Ese número cuenta tanto como los resultados positivos.",
     "script_note": "Borrador generado con IA. Reescríbelo con tus palabras antes de grabar y publica la transcripción.",
     "transcript_required": true
   },
   "visual": {
-    "wall_svg": "walls/wall-03-ra.svg",
-    "scene": "Mapa de Costa Rica dibujado como con crayones, un teléfono apoyado sobre la hoja marcador y una puerta con código QR.",
-    "data_viz": "Embudo de acceso 33 → 10 → 6 como tres sillas de pupitre que se van vaciando.",
+    "wall_svg": "walls/wall-03-augmented-reality.svg",
+    "scene": "Cartulina kraft con el mapa de Costa Rica coloreado como con crayones (siete provincias), una guirnalda de 33 muñecos de papel, una lente de teléfono que se arrastra sobre el mapa y levanta la provincia como un bloque turquesa, una hoja marcador y el aviso de «sin conexión».",
+    "data_viz": "Guirnalda de 33 muñecos: sin internet (23), con internet sin instalar (4) e instalaron (6).",
     "speaker_position": "top-right"
   },
   "verify": [
     "Resolver el DOI correcto (54010 o 51353).",
-    "Confirmar el denominador de los porcentajes de las figuras 4 y 5."
+    "Confirmar el denominador de los porcentajes de las figuras 4 y 5.",
+    "Confirmar en el artículo que 23 estudiantes no tenían internet (33 − 10) y 4 tenían internet sin instalar (10 − 6).",
+    "La ubicación del pin de la escuela en San Rafael de Alajuela es aproximada."
   ]
 }

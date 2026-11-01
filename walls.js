@@ -78,7 +78,12 @@ export async function loadWall({ index, id, svgPath, title, framesFallback }) {
     wall.placeholder = true;
     el.innerHTML = '';
     const ph = make('div', 'placeholder');
-    ph.append(make('div', 'ph-wainscot'), make('div', 'ph-trim'), make('h2', 'ph-title', title));
+    ph.append(
+      make('div', 'ph-wainscot'),
+      make('div', 'ph-floor'),
+      make('div', 'ph-lintel', title),
+      make('p', 'ph-caption', 'Pared en construcción'),
+    );
     el.append(ph);
     wall.frames.set('focus-frame', { x: 0, y: 0, w: VB.w, h: VB.h });
   }

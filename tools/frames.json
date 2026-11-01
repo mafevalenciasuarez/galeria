@@ -194,6 +194,64 @@
           "purpose": "Altavoz de la sala"
         }
       ]
+    },
+    "wall-03-augmented-reality": {
+      "group": "focus-frames",
+      "annotations": "wall-03-extras.frag.svg",
+      "annotations_group": "wall-extras",
+      "rects": [
+        {
+          "id": "focus-frame",
+          "x": 0,
+          "y": 0,
+          "w": 1600,
+          "h": 900,
+          "purpose": "Vista general de la pared"
+        },
+        {
+          "id": "focus-garland",
+          "x": 24,
+          "y": 0,
+          "w": 1140,
+          "h": 641.3,
+          "purpose": "Guirnalda de 33 muñecos y el interruptor"
+        },
+        {
+          "id": "focus-map",
+          "x": 0,
+          "y": 245,
+          "w": 970,
+          "h": 545.6,
+          "purpose": "Cartulina con el mapa, la lente, el aviso sin conexión y los botones de escena"
+        },
+        {
+          "id": "focus-marker",
+          "x": 750,
+          "y": 234.75,
+          "w": 520,
+          "h": 292.5,
+          "purpose": "Hoja marcador"
+        },
+        {
+          "id": "focus-content",
+          "x": 1080,
+          "y": 224,
+          "w": 520,
+          "h": 292.5,
+          "purpose": "Panel de contenido"
+        },
+        {
+          "id": "focus-speaker",
+          "x": 1109,
+          "y": 0,
+          "w": 480,
+          "h": 270,
+          "purpose": "Altavoz de la sala"
+        }
+      ],
+      "hide": [
+        "paper-kid"
+      ]
     }
   },
   "note_map_views": "Los view-* son rectángulos en coordenadas del mapa y deben tener la proporción de map-slot (520 x 415,1 = 1,2527), no 16:9."

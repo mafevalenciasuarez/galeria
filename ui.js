@@ -88,6 +88,28 @@ function sampleFunnel(ev) {
   return sub('Muestra', list(items));
 }
 
+// Sala 3: enrolled -> with internet -> installed, as horizontal bars (evidence.access_funnel).
+const ACCESS_LABELS = [
+  ['enrolled_in_section', 'Matriculados en la sección'],
+  ['with_internet', 'Con internet'],
+  ['installed_app', 'Instalaron la aplicación'],
+];
+function accessFunnel(ev) {
+  const f = ev && ev.access_funnel;
+  if (!f) return [];
+  const rows = ACCESS_LABELS.filter(([k]) => typeof f[k] === 'number');
+  if (!rows.length) return [];
+  const max = Math.max(...rows.map(([k]) => f[k]), 1);
+  const ul = el('ul', { class: 'chart access-chart', 'aria-label': 'Embudo de acceso: matriculados, con internet, instalaron' });
+  rows.forEach(([k, label]) => {
+    ul.append(el('li', {},
+      el('span', { class: 'chart-label' }, label),
+      el('span', { class: 'chart-track', 'aria-hidden': 'true' }, el('span', { class: 'chart-bar', style: `width:${(f[k] / max) * 100}%` })),
+      el('strong', { class: 'chart-value' }, String(f[k]))));
+  });
+  return sub('Acceso a la aplicación', ul);
+}
+
 // One builder per tab label from gallery.json card_tabs.tabs.
 const BUILDERS = {
   'Contexto educativo': (d) => [
@@ -151,8 +173,11 @@ const BUILDERS = {
       ...sub('Límites', list(c.limits)),
       ...(freq ? chart(freq.values, freq.note) : []),
       ...sampleFunnel(d.evidence),
+      ...accessFunnel(d.evidence),
+      ...sub('Percepciones', para(d.evidence && d.evidence.perception && d.evidence.perception.denominator_note, 'muted')),
       ...videoBars(d.evidence),
       ...sub('Fuente (APA 7)', para(d.source && d.source.apa, 'apa')),
+      ...sub('Crédito de los datos del mapa', para(d.evidence && d.evidence.map && d.evidence.map.data_credit, 'apa')),
       verify,
     ];
   },
@@ -165,6 +190,24 @@ export function createCard({ root, backdrop, tabs, onClose }) {
   let panel = null;
   let opener = null;
   let active = 0;
+  let specList = [];
+
+  // Experience rooms pass tab labels. A caller can instead pass {id, label, render(container)}.
+  const experienceSpecs = (tabs || []).map((tab, i) => {
+    if (tab && typeof tab === 'object') {
+      return { id: tab.id || String(i), label: tab.label, render: tab.render };
+    }
+    const label = String(tab);
+    return {
+      id: String(i),
+      label,
+      render(container) {
+        const build = BUILDERS[label];
+        const nodes = build && data ? build(data, openOpts).flat().filter(Boolean) : [];
+        container.replaceChildren(...(nodes.length ? nodes : [el('p', { class: 'muted' }, 'No hay información para esta pestaña en el archivo de datos.')]));
+      },
+    };
+  });
 
   const isOpen = () => !backdrop.hidden;
 
@@ -176,42 +219,63 @@ export function createCard({ root, backdrop, tabs, onClose }) {
       b.tabIndex = on ? 0 : -1;
       if (on && focus) b.focus();
     });
-    const label = tabs[i];
-    const build = BUILDERS[label];
-    const nodes = build && data ? build(data, openOpts).flat().filter(Boolean) : [];
-    panel.replaceChildren(...(nodes.length ? nodes : [el('p', { class: 'muted' }, 'No hay información para esta pestaña en el archivo de datos.')]));
+    const spec = specList[i];
+    panel.replaceChildren();
+    if (spec && spec.render) spec.render(panel);
+    else panel.append(el('p', { class: 'muted' }, 'No hay información para esta pestaña en el archivo de datos.'));
     panel.setAttribute('aria-labelledby', `tab-${i}`);
     panel.scrollTop = 0;
+    if (openOpts.scrollTo) {
+      const id = openOpts.scrollTo;
+      const host = panel;
+      const apply = () => {
+        const target = host.querySelector(`[data-room="${CSS.escape(id)}"]`);
+        if (!target || !host.isConnected) return;
+        const delta = target.getBoundingClientRect().top - host.getBoundingClientRect().top - 8;
+        if (delta) host.scrollTop = Math.max(0, host.scrollTop + delta);
+      };
+      apply();
+      requestAnimationFrame(apply);
+    }
   }
 
-  function open(d, { tab = 0, highlightPhase, line } = {}) {
+  function open(d, opts = {}) {
+    const { tab = 0, title, kicker, footer, extra } = opts;
     data = d;
-    openOpts = { highlightPhase, line };
+    openOpts = opts;
+    specList = opts.specs || experienceSpecs;
     opener = document.activeElement;
-    const room = d.room || {};
+    const room = (d && d.room) || {};
     const close = el('button', { type: 'button', class: 'card-close', 'aria-label': 'Cerrar tarjeta' }, 'Cerrar');
     close.addEventListener('click', () => closeCard());
     const tablist = el('div', { role: 'tablist', 'aria-label': 'Secciones de la tarjeta', class: 'tablist' });
-    buttons = tabs.map((label, i) => {
-      const b = el('button', { type: 'button', role: 'tab', id: `tab-${i}`, 'aria-controls': 'card-panel', class: 'tab' }, label);
+    buttons = specList.map((spec, i) => {
+      const b = el('button', { type: 'button', role: 'tab', id: `tab-${i}`, 'aria-controls': 'card-panel', class: 'tab' }, spec.label);
       b.addEventListener('click', () => select(i, false));
       b.addEventListener('keydown', (e) => {
-        const n = tabs.length;
+        const n = specList.length;
         const next = { ArrowRight: (i + 1) % n, ArrowLeft: (i + n - 1) % n, Home: 0, End: n - 1 }[e.key];
-        if (next != null) { e.preventDefault(); select(next, true); }
+        if (next != null) { e.preventDefault(); e.stopPropagation(); select(next, true); }
       });
       tablist.append(b);
       return b;
     });
     panel = el('div', { role: 'tabpanel', id: 'card-panel', class: 'card-panel', tabindex: '0' });
+    const footKids = [footer, extra].filter(Boolean);
     root.replaceChildren(
       el('header', { class: 'card-head' },
-        el('div', {}, el('h2', { id: 'card-title' }, room.title || ''), el('p', { class: 'tech-role' }, room.technology_role || '')),
+        el('div', {},
+          el('h2', { id: 'card-title' }, title != null ? title : (room.title || '')),
+          el('p', { class: 'tech-role' }, kicker != null ? kicker : (room.technology_role || ''))),
         close),
-      tablist, panel);
+      tablist,
+      panel,
+      footKids.length ? el('footer', { class: 'card-foot' }, footKids) : null);
     backdrop.hidden = false;
-    select(Math.min(tab, tabs.length - 1), false);
-    buttons[active].focus();
+    let index = typeof tab === 'number' ? tab : specList.findIndex((s) => s.id === tab || s.label === tab);
+    if (index < 0) index = 0;
+    select(Math.min(index, Math.max(0, specList.length - 1)), false);
+    if (buttons[active]) buttons[active].focus({ preventScroll: true });
   }
 
   function closeCard(silent) {

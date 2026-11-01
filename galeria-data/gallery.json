@@ -299,8 +299,142 @@
     {
       "id": "exp-realidad-aumentada",
       "order": 3,
-      "wall_svg": "walls/wall-03-ra.svg",
-      "data": "exp-3-realidad-aumentada.json"
+      "wall_svg": "walls/wall-03-augmented-reality.svg",
+      "data": "exp-3-realidad-aumentada.json",
+      "frames": [
+        "focus-frame",
+        "focus-garland",
+        "focus-map",
+        "focus-marker",
+        "focus-content",
+        "focus-speaker"
+      ],
+      "anchors": {
+        "speaker": "speaker",
+        "content": "content-slot"
+      },
+      "garland": {
+        "slot_id": "garland-slot",
+        "hooks": [
+          "garland-hook-left",
+          "garland-hook-right"
+        ],
+        "template": "paper-kid",
+        "template_parts": {
+          "body": "kid-body",
+          "line": "kid-line"
+        },
+        "template_size": [
+          26,
+          38
+        ],
+        "count_from": "evidence.access_states.total",
+        "curve": {
+          "type": "parabola",
+          "sag_units": 70,
+          "rotate_with_tangent": true
+        },
+        "state_colors": {
+          "default": "#ead9b8",
+          "no_internet": "#9a9a9a",
+          "internet_not_installed": "#e0a526",
+          "installed": "#2bb3a3"
+        },
+        "star_for": "installed",
+        "toggle": {
+          "slot_id": "toggle-slot",
+          "data": "evidence.access_states"
+        },
+        "static": true,
+        "svg_ids": {
+          "group": "garland",
+          "kid_class": "kid",
+          "body_class": "kid-body",
+          "string": "garland-string"
+        },
+        "note": "Los 33 muñecos ya están dibujados en el SVG (.kid > use.kid-body). El motor solo cambia el atributo fill de cada .kid-body y añade estrellas; no necesita plantilla."
+      },
+      "map": {
+        "svg": "maps/costa-rica-provinces.svg",
+        "slot_id": "map-slot",
+        "sheet_id": "map-sheet",
+        "provinces": [
+          "prov-guanacaste",
+          "prov-alajuela",
+          "prov-heredia",
+          "prov-limon",
+          "prov-sanjose",
+          "prov-cartago",
+          "prov-puntarenas"
+        ],
+        "school_anchor": "school-pin-anchor",
+        "note": "El mapa ya está incluido en la pared como <svg id=map-slot-svg> (no hay que cargarlo). Los ids prov-* y school-pin-anchor están dentro.",
+        "embedded": true,
+        "nested_svg_id": "map-slot-svg"
+      },
+      "lens": {
+        "id": "lens",
+        "sound_id": "lens-sound",
+        "size": [
+          170,
+          300
+        ],
+        "rest": [
+          593,
+          311
+        ],
+        "tilt_deg": -10,
+        "bounds_id": "map-sheet",
+        "pick": "provincia bajo el centro de la lente (hit test con los rects de provincia en pantalla)",
+        "hologram": {
+          "layers": 9,
+          "step_units": 4,
+          "lift_units": 6,
+          "fill_from": "#78e1d2",
+          "fill_to": "#2bb3a3",
+          "stroke": "#1f8f83",
+          "render": "En la capa de la pared, NO dentro del <svg> anidado (recortaría el desborde)."
+        },
+        "holo_note": "La pila turquesa dibujada dentro de #lens es provisional: agrupar como lens-holo en Illustrator para que el motor la oculte y dibuje la suya."
+      },
+      "scenes": {
+        "bar_slot_id": "scene-bar-slot",
+        "data": "tic_use.scenes in exp-3-realidad-aumentada.json"
+      },
+      "hotspots": [
+        {
+          "id": "speaker",
+          "label": "Altavoz de la sala",
+          "type": "audio"
+        },
+        {
+          "id": "lens",
+          "label": "Lente de realidad aumentada (arrastrar)",
+          "type": "drag"
+        },
+        {
+          "id": "marker-sheet",
+          "label": "Hoja marcador",
+          "type": "info",
+          "opens": "Uso de TIC"
+        },
+        {
+          "id": "offline-sticker",
+          "label": "Sin conexión",
+          "type": "info",
+          "opens": "Lectura crítica"
+        },
+        {
+          "id": "toggle-garland",
+          "label": "¿Quién pudo usarla?",
+          "type": "html-toggle"
+        }
+      ],
+      "marker": {
+        "id": "marker-sheet",
+        "frame": "focus-marker",
+        "note": "Patrón abstracto tipo marcador, sin texto; dibujado en el fragmento de la pared."
+      }
     },
     {
       "id": "exp-ia-aprendizaje-automatico",
@@ -430,7 +564,10 @@
       "exp-realidad-aumentada",
       "exp-ia-aprendizaje-automatico"
     ],
-    "references_note": "Las referencias salen del campo source.apa de cada experiencia. Resolver los avisos de verify antes de publicar."
+    "references_note": "Las referencias salen del campo source.apa de cada experiencia. Resolver los avisos de verify antes de publicar.",
+    "data_credits": [
+      "Natural Earth. (s. f.). Admin 1 – States, Provinces [Conjunto de datos]. https://www.naturalearthdata.com/"
+    ]
   },
   "svg_conventions": {
     "viewBox": "0 0 1600 900",

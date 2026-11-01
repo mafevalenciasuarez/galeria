@@ -4,6 +4,8 @@ import { loadWall, basename, buildIntro, buildRoom, drawDebug, buildFills, setFi
 import { createCard, createPopup, createTooltip, createAudio, createAmbience } from './ui.js';
 import { initMap } from './map.js';
 import { initRoom2 } from './room2.js';
+import { initRoom3 } from './room3.js';
+import { initFinal, auditPublish } from './roomFinal.js';
 import { createProps } from './props.js';
 
 const $ = (id) => document.getElementById(id);
@@ -99,6 +101,10 @@ async function main() {
       const sp = gallery.intro.speaker;
       return { file: sp.welcome_audio, script: sp.script_draft, scriptNote: sp.script_note };
     }
+    if (stop.kind === 'final') {
+      const a = gallery.final_room && gallery.final_room.audio;
+      return a && a.file ? { file: a.file, script: a.script_draft, scriptNote: a.script_note } : null;
+    }
     const a = stop.data && stop.data.audio;
     return a ? { file: a.file, script: a.script_draft, scriptNote: a.script_note } : null;
   }
@@ -127,9 +133,11 @@ async function main() {
   camera.onArrive = (wallId, frameId) => {
     const s = stopByWall(wallId);
     if (!s) return;
-    if (s.index !== currentIndex) { currentIndex = s.index; audio.stop(); }
+    const entered = s.index !== currentIndex;
+    if (entered) { currentIndex = s.index; audio.stop(); }
     syncNav();
     if (s.wall.map) { s.wall.map.refresh(); s.wall.map.arrived(); }
+    if (s.wall.room3) s.wall.room3.arrived(frameId, entered && frameId === 'focus-frame');
     if (frameId === 'focus-content' && s.data && !card.isOpen() && !busy) {
       card.open(s.data, { tab: pendingTab, ...pendingOpts });
       pendingTab = 0;
@@ -267,6 +275,40 @@ async function main() {
   // ---------- Sala 2 lockers, plaques and flip board ----------
   const lockerStop = stops.find((s) => s.kind === 'room' && s.room.lockers && s.room.board && s.data && !s.wall.placeholder);
   if (lockerStop) initRoom2({ wall: lockerStop.wall, room: lockerStop.room, data: lockerStop.data, isInstant: () => camera.instant });
+
+  // ---------- Sala 3 garland, lens and scene bar ----------
+  const arStop = stops.find((s) => s.kind === 'room' && s.room.lens && s.room.garland && s.data && !s.wall.placeholder);
+  if (arStop) {
+    arStop.wall.room3 = initRoom3({
+      wall: arStop.wall,
+      room: arStop.room,
+      data: arStop.data,
+      isInstant: () => camera.instant,
+      goTo: (frame, opts) => camera.goTo(arStop.wallId, frame, opts),
+      openCard: (label) => {
+        if (card.isOpen()) return;
+        pendingTab = Math.max(0, tabs.indexOf(label));
+        camera.goTo(arStop.wallId, 'focus-content');
+      },
+      playAudio: toggleSpeaker,
+      tip,
+    });
+  }
+
+  // ---------- Final room (works with or without wall-05) ----------
+  const finalStop = stops.find((s) => s.kind === 'final');
+  if (finalStop) {
+    auditPublish({ gallery, rooms, roomData });
+    const api = initFinal({
+      wall: finalStop.wall,
+      gallery,
+      rooms,
+      roomData,
+      playAudio: toggleSpeaker,
+      openCard: (view) => card.open(null, view),
+    });
+    finalStop.wall.finalRoom = api;
+  }
 
   // ---------- Debug ----------
   if (debug) {

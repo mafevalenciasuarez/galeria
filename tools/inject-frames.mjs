@@ -45,6 +45,10 @@ for (const file of fs.readdirSync(srcDir).filter(f => f.endsWith('.svg'))) {
   const annGroup = annotations
     ? `  <g id="${annId}" pointer-events="none">\n${annotations}\n  </g>\n`
     : '';
+  // ids a ocultar (arte original que el fragmento ya reemplaza): se les añade display="none"
+  for (const hid of (Array.isArray(entry) ? [] : (entry.hide || []))) {
+    svg = svg.replace(new RegExp(`(<\\w+\\b[^>]*?\\bid="${hid}")([^>]*>)`), (m, a, b) => b.includes('display=') ? m : `${a} display="none"${b}`);
+  }
   svg = svg.replace(/<\/svg>\s*$/, annGroup + group + '</svg>\n');
   fs.writeFileSync(path.join(outDir, file), svg);
   console.log(`OK ${name}: ${frames.length} marcos`);
