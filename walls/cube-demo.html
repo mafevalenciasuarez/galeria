@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo: giro de esquina exterior (cubo) entre la Sala 3 y la Sala 4</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1b1512; overflow: hidden; font-family: system-ui, sans-serif; }
+  #scene { position: fixed; inset: 0; overflow: hidden; perspective: 1100px; perspective-origin: 50% 50%; }
+  #world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; will-change: transform; }
+  .wall { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; contain: paint; }
+  .plane { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: visible; }
+  .plane.floor { background-color: #8d6547;
+    background-image: repeating-linear-gradient(180deg, transparent 0 146px, rgba(60,40,28,.30) 146px 150px),
+                      repeating-linear-gradient(90deg, transparent 0 296px, rgba(60,40,28,.18) 296px 300px); }
+  .wall > svg { display: block; width: 100%; height: 100%; }   /* solo el SVG de la pared, no los <svg> anidados */
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; justify-content: center; padding: 10px; background: #2b2321; color: #f2e7cb; }
+  #bar button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid #8d6547; background: #3d2e26; color: #f2e7cb; cursor: pointer; }
+  #bar button:focus-visible { outline: 3px solid #e0a526; outline-offset: 2px; }
+  #bar input[type=range] { width: 280px; }
+</style>
+</head>
+<body>
+<div id="scene"><div id="world"></div></div>
+<div id="bar">
+  <button id="play" type="button">Girar alrededor de la esquina ▶</button>
+  <button id="reset" type="button">Reiniciar</button>
+  <label>Progreso <input id="t" type="range" min="0" max="1" step="0.001" value="0" aria-label="Progreso del giro"></label>
+</div>
+<script type="module">
+import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
+// Esquina EXTERIOR (como el efecto Cubo de PowerPoint): la pared 4 sale de la arista derecha de la pared 3 y se aleja del espectador.
+// La cámara rodea la arista C en un arco de radio casi constante mientras gira a la izquierda (yaw 0 -> -90).
+const P = 1100, DUR = 3200;
+const WOOD_URL = makeWoodTexture({ plankPx: 32, seed: 7 });
+const files = ['walls/wall-03-augmented-reality.svg', 'walls/wall-04-ai-training.svg'];
+const world = document.getElementById('world');
+let W, H, TOP, vw, vh, EY, E0, E1, C, phiS, dPhi, rS, rE;
+
+async function build() {
+  vw = innerWidth; vh = innerHeight - 52;
+  W = Math.min(vw, vh * 16 / 9); H = W * 9 / 16; TOP = (vh - H) / 2; EY = TOP + H / 2;
+  world.innerHTML = '';
+  for (let i = 0; i < files.length; i++) {
+    const txt = await (await fetch(files[i])).text();
+    const el = document.createElement('div'); el.className = 'wall';
+    el.style.cssText = `width:${W}px;height:${H}px;top:${TOP}px;`;
+    el.innerHTML = txt.replace(/^[\s\S]*?(<svg)/, '$1');
+    // pared 3: k = 0, origen (0,0). pared 4: k = -1, origen C = (W,0): su borde izquierdo es la arista; avanza hacia -z y mira hacia +x
+    el.style.transform = i === 0 ? 'none' : `translate3d(${W}px,0,0) rotateY(90deg)`;
+    world.appendChild(el);
+  }
+  // Techo y suelo: rectángulo que cubre todas las paredes (las paredes son opacas, lo que queda detrás no se ve)
+  const FLOOR_Y = TOP + H * (822 / 900);
+  [['ceiling', TOP], ['floor', FLOOR_Y]].forEach(([cls, y]) => {
+    const el = document.createElement('div'); el.className = 'plane ' + cls;
+    const xa = -W, xb = 3 * W, za = -1.4 * W, zb = 2.2 * W;
+    el.style.cssText = `width:${xb - xa}px;height:${zb - za}px;transform:translate3d(${xa}px,${y}px,${za}px) rotateX(90deg);`;
+    if (cls === 'ceiling') Object.assign(el.style, woodCeilingStyle(WOOD_URL));
+    world.appendChild(el);
+  });
+  const s = Math.min(vw / W, vh / H), dist = P / s;
+  C = { x: W, z: 0 };
+  E0 = { x: W / 2, z: dist };                  // frente a la pared 3, mirando -z
+  E1 = { x: W + dist, z: -W / 2 };             // frente a la pared 4, mirando -x
+  phiS = Math.atan2(E0.z - C.z, E0.x - C.x);
+  let d = Math.atan2(E1.z - C.z, E1.x - C.x) - phiS;
+  while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;   // el arco más corto
+  dPhi = d; rS = Math.hypot(E0.x - C.x, E0.z - C.z); rE = Math.hypot(E1.x - C.x, E1.z - C.z);
+  setProgress(+document.getElementById('t').value);
+}
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function setProgress(t) {
+  const e = ease(t), phi = phiS + dPhi * e, r = rS + (rE - rS) * e, yaw = -90 * e;
+  const ex = C.x + r * Math.cos(phi), ez = C.z + r * Math.sin(phi);
+  world.style.transform = `translate3d(${vw / 2}px,${vh / 2}px,${P}px) rotateY(${yaw}deg) translate3d(${-ex}px,${-EY}px,${-ez}px)`;
+  document.getElementById('t').value = t;
+}
+window.__setProgress = setProgress; window.__ready = build();
+let raf = null;
+document.getElementById('play').onclick = () => {
+  cancelAnimationFrame(raf);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return setProgress(1);
+  const t0 = performance.now(), from = +document.getElementById('t').value;
+  const step = now => { const t = Math.min(1, from + (now - t0) / DUR); setProgress(t); if (t < 1) raf = requestAnimationFrame(step); };
+  raf = requestAnimationFrame(step);
+};
+document.getElementById('reset').onclick = () => { cancelAnimationFrame(raf); setProgress(0); };
+document.getElementById('t').oninput = e => { cancelAnimationFrame(raf); setProgress(+e.target.value); };
+addEventListener('resize', build);
+</script>
+</body>
+</html>

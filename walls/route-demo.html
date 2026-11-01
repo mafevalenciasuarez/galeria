@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo del recorrido completo: esquinas interior y exterior</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1b1512; overflow: hidden; font-family: system-ui, sans-serif; }
+  #scene { position: fixed; inset: 0; overflow: hidden; perspective: 1100px; perspective-origin: 50% 50%; }
+  #world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; will-change: transform; }
+  .wall { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; contain: paint; }
+  .wall > svg { display: block; width: 100%; height: 100%; }
+  .wall.placeholder { background: #cfa873; display: grid; place-items: center; color: #4b342c; font: 700 3vw Georgia, serif; border: 6px dashed #4b342c; box-sizing: border-box; }
+  .plane { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: visible; }
+  .plane.floor { background-color: #8d6547;
+    background-image: repeating-linear-gradient(180deg, transparent 0 146px, rgba(60,40,28,.30) 146px 150px),
+                      repeating-linear-gradient(90deg, transparent 0 296px, rgba(60,40,28,.18) 296px 300px); }
+  #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; justify-content: center; padding: 10px; background: #2b2321; color: #f2e7cb; }
+  #bar button, #bar select { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid #8d6547; background: #3d2e26; color: #f2e7cb; cursor: pointer; }
+  #bar button:focus-visible, #bar select:focus-visible { outline: 3px solid #e0a526; outline-offset: 2px; }
+  #bar button:disabled { opacity: .5; cursor: default; }
+</style>
+</head>
+<body>
+<div id="scene"><div id="world"></div></div>
+<div id="bar">
+  <button id="prev" type="button">← Anterior</button>
+  <select id="menu" aria-label="Ir a una pared"></select>
+  <button id="next" type="button">Siguiente →</button>
+  <span id="info" role="status" style="min-width:230px"></span>
+</div>
+<script type="module">
+import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
+// Demo de referencia: layout por rumbos k (0..3) y transiciones recta, esquina interior y esquina exterior.
+//  d = dirección de lectura de la pared; n = normal hacia el espectador = (-d.z, d.x); yaw de la cámara = 90*k.
+//  Pared:  transform = translate3d(O.x,0,O.z) rotateY(-90*k deg), origen (0 0).
+//  Cámara: E = O + d*u + n*Dist ;  mundo: translate3d(vw/2,vh/2,P) rotateY(yaw) translate3d(-Ex,-Ey,-Ez).
+const P = 1100, GLIDE = 1000;
+const WOOD_URL = makeWoodTexture({ plankPx: 32, seed: 7 });
+const gal = await (await fetch('galeria-data/gallery.json')).json();
+const world = document.getElementById('world');
+const DIRS = [{ x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }, { x: 0, z: -1 }];
+const dirOf = k => DIRS[((k % 4) + 4) % 4];
+let vw, vh, W, H, TOP, EY, stops = [], cur = 0, anim = null;
+
+async function build() {
+  vw = innerWidth; vh = innerHeight - 52; W = Math.min(vw, vh * 16 / 9); H = W * 9 / 16; TOP = (vh - H) / 2; EY = TOP + H / 2;
+  world.innerHTML = ''; stops = [];
+  let k = 0, O = { x: 0, z: 0 }; const placed = [];
+  for (const seg of gal.route.segments) {
+    if (seg.type === 'straight') {
+      for (const id of seg.walls) {
+        if (placed.includes(id)) continue; placed.push(id);
+        const d = dirOf(k); stops.push({ id, O: { ...O }, k, d, n: { x: -d.z, z: d.x } });
+        O = { x: O.x + d.x * W, z: O.z + d.z * W };
+      }
+    } else {                                           // esquina: O ya es el extremo de la última pared (= C)
+      const C = { ...O }; stops[stops.length - 1].corner = { type: seg.type, C };
+      k += seg.type === 'corner_90_outside' ? -1 : 1;
+    }
+  }
+  for (const s of stops) {
+    const el = document.createElement('div'); el.className = 'wall'; el.style.cssText = `width:${W}px;height:${H}px;top:${TOP}px;`;
+    try { const r = await fetch(`walls/${s.id}.svg`); if (!r.ok) throw 0; el.innerHTML = (await r.text()).replace(/^[\s\S]*?(<svg)/, '$1'); }
+    catch { el.className += ' placeholder'; el.textContent = s.id; }
+    el.style.transform = `translate3d(${s.O.x}px,0,${s.O.z}px) rotateY(${-90 * s.k}deg)`; world.appendChild(el);
+  }
+  // techo y suelo: recuadro de todas las paredes + margen
+  const pts = stops.flatMap(s => [s.O, { x: s.O.x + s.d.x * W, z: s.O.z + s.d.z * W }]), m = Math.max(1.0 * W, 1.3 * P);
+  const xa = Math.min(...pts.map(p => p.x)) - m, xb = Math.max(...pts.map(p => p.x)) + m, za = Math.min(...pts.map(p => p.z)) - m, zb = Math.max(...pts.map(p => p.z)) + m;
+  [['ceiling', TOP], ['floor', TOP + H * (822 / 900)]].forEach(([cls, y]) => {
+    const el = document.createElement('div'); el.className = 'plane ' + cls;
+    el.style.cssText = `width:${xb - xa}px;height:${zb - za}px;transform:translate3d(${xa}px,${y}px,${za}px) rotateX(90deg);`;
+    if (cls === 'ceiling') Object.assign(el.style, woodCeilingStyle(WOOD_URL));
+    world.appendChild(el);
+  });
+  const sel = document.getElementById('menu'); sel.innerHTML = stops.map((s, i) => `<option value="${i}">${i}: ${s.id}</option>`).join('');
+  apply(poseAt(cur, 0));
+}
+const dist = () => P / Math.min(vw / W, vh / H);
+const stopPose = s => ({ x: s.O.x + s.d.x * W / 2 + s.n.x * dist(), z: s.O.z + s.d.z * W / 2 + s.n.z * dist(), yaw: 90 * s.k });
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, lerp = (a, b, t) => a + (b - a) * t;
+function path(a, b, t) {                                // a -> b, a y b consecutivos; t en [0,1]
+  const A = stopPose(a), B = stopPose(b), e = ease(t);
+  if (!a.corner) return { x: lerp(A.x, B.x, e), z: lerp(A.z, B.z, e), yaw: A.yaw };         // recta: avance lateral
+  const C = a.corner.C;
+  if (a.corner.type === 'corner_90') {                  // interior: interpolación + retroceso
+    let x = lerp(A.x, B.x, e), z = lerp(A.z, B.z, e), yaw = lerp(A.yaw, B.yaw, e), pull = 0.10 * P * Math.sin(Math.PI * e), r = yaw * Math.PI / 180;
+    return { x: x - pull * Math.sin(r), z: z + pull * Math.cos(r), yaw };
+  }
+  const ps = Math.atan2(A.z - C.z, A.x - C.x); let d = Math.atan2(B.z - C.z, B.x - C.x) - ps;   // exterior: órbita alrededor de la arista
+  while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+  const r = lerp(Math.hypot(A.x - C.x, A.z - C.z), Math.hypot(B.x - C.x, B.z - C.z), e), ph = ps + d * e;
+  return { x: C.x + r * Math.cos(ph), z: C.z + r * Math.sin(ph), yaw: lerp(A.yaw, B.yaw, e) };
+}
+function poseAt(i, t) { return t === 0 ? stopPose(stops[i]) : path(stops[i], stops[i + 1], t); }
+function apply(p) { world.style.transform = `translate3d(${vw / 2}px,${vh / 2}px,${P}px) rotateY(${p.yaw}deg) translate3d(${-p.x}px,${-EY}px,${-p.z}px)`;
+  document.getElementById('info').textContent = `Pared ${cur}: ${stops[cur]?.id ?? ''}`; document.getElementById('menu').value = cur; }
+function go(j) {
+  if (j < 0 || j >= stops.length || j === cur || anim) return;
+  const fwd = j > cur, i0 = fwd ? cur : j, dur = stops[i0].corner ? (stops[i0].corner.type === 'corner_90_outside' ? 3200 : 2800) : GLIDE, t0 = performance.now();
+  if (Math.abs(j - cur) > 1 || matchMedia('(prefers-reduced-motion: reduce)').matches) { cur = j; apply(poseAt(j, 0)); return; }   // saltos largos: corte
+  anim = true;
+  const step = now => { const u = Math.min(1, (now - t0) / dur); apply(poseAt(i0, fwd ? u : 1 - u)); if (u < 1) requestAnimationFrame(step); else { cur = j; anim = null; apply(poseAt(cur, 0)); } };
+  requestAnimationFrame(step);
+}
+document.getElementById('prev').onclick = () => go(cur - 1); document.getElementById('next').onclick = () => go(cur + 1);
+document.getElementById('menu').onchange = e => go(+e.target.value);
+addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(cur + 1); if (e.key === 'ArrowLeft') go(cur - 1); });
+addEventListener('resize', build);
+window.__ready = build(); window.__at = (i, t) => { cur = i; apply(poseAt(i, t)); };
+</script>
+</body>
+</html>

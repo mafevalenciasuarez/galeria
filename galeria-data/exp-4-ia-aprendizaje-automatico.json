@@ -109,6 +109,101 @@
       "with_scratch_mean": 3.58,
       "without_scratch_mean": 3.21,
       "r": 0.41
+    },
+    "lab": {
+      "classes": [
+        {
+          "n": 1,
+          "label": "Alegre",
+          "en": "Joyful",
+          "card": "face-card-1",
+          "costume": "jelly-1",
+          "color": "#e8b83e"
+        },
+        {
+          "n": 2,
+          "label": "Miedo",
+          "en": "Fearful",
+          "card": "face-card-2",
+          "costume": "jelly-2",
+          "color": "#c2a1d3"
+        },
+        {
+          "n": 3,
+          "label": "Enojo",
+          "en": "Angry",
+          "card": "face-card-3",
+          "costume": "jelly-3",
+          "color": "#e86a52"
+        },
+        {
+          "n": 4,
+          "label": "Asco",
+          "en": "Disgusted",
+          "card": "face-card-4",
+          "costume": "jelly-4",
+          "color": "#9bb08a"
+        }
+      ],
+      "source_note": "Las cuatro clases y la medusa que cambia de disfraz salen de las figuras 1 y 2 del artículo (Teachable Machine y RAISE).",
+      "webcam": {
+        "slot": "webcam-slot",
+        "behavior": "muestra la cara de la tarjeta elegida"
+      },
+      "sim_bars": {
+        "illustrative": true,
+        "selected": 0.84,
+        "others_each": 0.0533,
+        "caption": "Simulación ilustrativa: el artículo no reporta probabilidades por clase."
+      },
+      "jelly_align": [
+        {
+          "id": "jelly-2",
+          "dx": -21.5
+        },
+        {
+          "id": "jelly-3",
+          "dx": -23.3
+        },
+        {
+          "id": "jelly-4",
+          "dx": -35.0
+        }
+      ],
+      "thermometers": {
+        "scale": {
+          "min": 0,
+          "max": 10,
+          "y_min": 390,
+          "y_max": 168,
+          "max_note": "Se asume un máximo de 10 puntos (prueba de 10 preguntas); verificar en el artículo."
+        },
+        "items": [
+          {
+            "id": "thermo-2",
+            "side": "left",
+            "measure": "first",
+            "label": "Primera medición",
+            "value": 6.24,
+            "sd": 1.41
+          },
+          {
+            "id": "thermo-1",
+            "side": "right",
+            "measure": "second",
+            "label": "Segunda medición",
+            "value": 5.54,
+            "sd": 1.74
+          }
+        ],
+        "note": "Valores impresos en el artículo: la primera medición (6,24) es mayor que la segunda (5,54), aunque los autores concluyen una mejora. Posible inversión de etiquetas, no verificable desde el texto.",
+        "art_note": "Las marcas del termómetro son decorativas y no coinciden con la escala 0 a 10; el motor dibuja el líquido con la escala de arriba."
+      },
+      "missing_tool": {
+        "hotspot": "missing-tool",
+        "title": "Falta una herramienta",
+        "text": "El marco teórico del artículo dice que alfabetizar en IA incluye la crítica ética y los sesgos, pero ninguna actividad ni medida del estudio los aborda."
+      }
     }
   },
   "transfer": {
@@ -122,13 +217,14 @@
     "transcript_required": true
   },
   "visual": {
-    "wall_svg": "walls/wall-04-ia.svg",
-    "scene": "Pared de aula de informática con un monitor que muestra una cara y cuatro barras de clase (alegre, miedo, enojo, asco) y una medusa de Scratch en un recuadro tipo acuario.",
-    "data_viz": "Dos barras de pre y post impresas tal como aparecen en el artículo, con una nota al lado que advierte la posible inversión de etiquetas.",
+    "wall_svg": "walls/wall-04-ai-training.svg",
+    "scene": "Monitor con una medusa que cambia de postura según la tarjeta de expresión elegida, cámara con la cara de la tarjeta y barras ilustrativas; dos termómetros con las medias impresas del artículo; un tablero de herramientas con un hueco vacío.",
+    "data_viz": "Termómetros 6,24 y 5,54 (sobre 10) tal como se imprimen en el artículo, con nota sobre la posible inversión de etiquetas.",
     "speaker_position": "top-right"
   },
   "verify": [
     "Revisar con el artículo si el orden pre y post de la dimensión 1 es una inversión de etiquetas.",
-    "La atribución de Teachable Machine a Carney et al. y a Chen (2020) aparece duplicada en la bibliografía del artículo."
+    "La atribución de Teachable Machine a Carney et al. y a Chen (2020) aparece duplicada en la bibliografía del artículo.",
+    "Confirmar el puntaje máximo de la prueba de 10 preguntas antes de fijar la escala 0 a 10 de los termómetros."
   ]
 }

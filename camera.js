@@ -1,11 +1,15 @@
-// Camera: pose (Ex, Ey, Ez, yaw) applied as one transform on #world.
-// Walls are placed from route.segments: straight runs along +x, and after a
-// corner_90 (right turn) the next walls run along +z. Math for the corner
-// turn is the one in walls/corner-demo.html.
+// Camera: pose (Ex, Ey, Ez, yaw) applied to each wall (and plane).
+// Walls are placed from route.segments by heading k (walls/route-demo.html):
+// d = direction of the wall's reading axis (k=0 +x, 1 +z, 2 -x, 3 -z), n = (-d.z, d.x)
+// is the normal toward the viewer. corner_90 (inside, right) does k += 1 and
+// corner_90_outside (outside, left, the "cube" turn) does k -= 1.
 
 const FILL_EXTRA = 2000; // px a wall-fill strip extends beyond the wall
 
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const lerp = (a, b, t) => a + (b - a) * t;
+const DIRS = [{ x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }, { x: 0, z: -1 }];
+const dirOf = (k) => DIRS[((k % 4) + 4) % 4];
 
 export function createCamera({ scene, world, route = null, P: defaultP = 1200, debug = false }) {
   const P = (route && route.world && route.world.perspective_px) || defaultP;
@@ -13,7 +17,8 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
   const cornerSeg = segments.find((s) => s.type === 'corner_90') || null;
 
   const walls = new Map(); // wallId -> { id, index, el, frames: Map(frameId -> {x,y,w,h}) }
-  const layout = new Map(); // wallId -> { h: 0|1, x0 } | { h: 1, xr, z0 }
+  const layout = new Map(); // wallId -> { O: {x, z}, k, d: {x, z}, n: {x, z} }
+  const corners = []; // { id, type, between: [aId, bId], seg }
   const dims = { vw: 0, vh: 0, wallPx: 0, wallTop: 0 };
   // Camera pose: position in world px, yaw in degrees.
   const cam = { x: 0, y: 0, z: 0, yaw: 0 };
@@ -23,6 +28,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
   const api = {
     P,
     corner: cornerSeg,
+    corners,
     userInstant: false,
     onArrive: null,
     // The OS reduced-motion setting does not drive this. Only the gallery button does.
@@ -38,28 +44,27 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
   // edge-on (yaw 90), so hotspots on the walls after the corner would not receive clicks.
   const layoutTf = new Map(); // wallId -> layout transform string
   const planes = []; // { el, yUnits, layoutTf } horizontal ceiling / floor
-  const MAX_PLANE = 8000; // px, neither side of a plane may exceed this
-
   function register(wall) { walls.set(wall.id, wall); }
 
-  // Route-driven placement. Heading 0 runs along +x; a right corner puts the
-  // next walls on x = xr, running along +z with the first wall's left edge at C = (xr, 0).
+  // Route-driven placement by heading k. A straight segment places its walls one
+  // after another (O += d * wallPx). The next wall after a corner starts at the
+  // corner point C, the end of the last placed wall.
   function computeLayout() {
     const W = dims.wallPx;
     layout.clear();
-    let heading = 0;
-    let cursor = 0; // x0 for heading 0, z0 for heading 1
-    let xr = 0;
+    corners.length = 0;
+    let k = 0;
+    let O = { x: 0, z: 0 };
     const put = (id) => {
-      if (heading === 0) layout.set(id, { h: 0, x0: cursor });
-      else layout.set(id, { h: 1, xr, z0: cursor });
-      cursor += W;
+      if (layout.has(id)) return; // already placed
+      const d = dirOf(k);
+      layout.set(id, { O: { ...O }, k, d, n: { x: -d.z, z: d.x } });
+      O = { x: O.x + d.x * W, z: O.z + d.z * W };
     };
     for (const seg of segments) {
-      if (seg.type === 'corner_90') {
-        xr = cursor; // right edge of the previous wall
-        heading = 1;
-        cursor = 0;
+      if (seg.type === 'corner_90' || seg.type === 'corner_90_outside') {
+        corners.push({ id: seg.id, type: seg.type, between: seg.between || [], seg });
+        k += seg.type === 'corner_90_outside' ? -1 : 1;
       } else {
         (seg.walls || []).forEach((id) => { if (walls.has(id)) put(id); });
       }
@@ -68,9 +73,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     [...walls.values()].sort((a, b) => a.index - b.index).forEach((w) => { if (!layout.has(w.id)) put(w.id); });
   }
 
-  const wallTransform = (L) => (L.h === 0
-    ? `translate3d(${L.x0}px, 0, 0)`
-    : `translate3d(${L.xr}px, 0, ${L.z0}px) rotateY(-90deg)`);
+  const wallTransform = (L) => `translate3d(${L.O.x}px, 0, ${L.O.z}px) rotateY(${-90 * L.k}deg)`;
 
   // Recompute wall size/position from the viewport.
   function measure() {
@@ -112,41 +115,22 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
 
   function setPlanes(list) { planes.length = 0; planes.push(...list); }
 
-  // Bounding box of every wall footprint, extended by margin_factor * wallPx on the
-  // open sides only. A heading-0 wall closes z below it; a heading-1 wall closes x past it.
+  // ONE rectangle: the (x, z) bounding box of every wall footprint, expanded on every side by
+  // max(margin_factor * wallPx, min_margin_p_factor * P). Walls are opaque, so what sits
+  // behind them stays hidden.
   function planeBox() {
     const W = dims.wallPx;
-    const margin = (((route && route.world && route.world.planes) || {}).margin_factor || 0) * W;
+    const cfg = (route && route.world && route.world.planes) || {};
+    const margin = Math.max((cfg.margin_factor || 0) * W, (cfg.min_margin_p_factor || 0) * P);
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
-    let closeMinZ = false, closeMaxX = false;
     for (const L of layout.values()) {
-      if (!L) continue;
-      if (L.h === 0) {
-        minX = Math.min(minX, L.x0); maxX = Math.max(maxX, L.x0 + W);
-        minZ = Math.min(minZ, 0); maxZ = Math.max(maxZ, 0);
-      } else {
-        minX = Math.min(minX, L.xr); maxX = Math.max(maxX, L.xr);
-        minZ = Math.min(minZ, L.z0); maxZ = Math.max(maxZ, L.z0 + W);
-      }
+      const ex = L.O.x + L.d.x * W;
+      const ez = L.O.z + L.d.z * W;
+      minX = Math.min(minX, L.O.x, ex); maxX = Math.max(maxX, L.O.x, ex);
+      minZ = Math.min(minZ, L.O.z, ez); maxZ = Math.max(maxZ, L.O.z, ez);
     }
     if (!isFinite(minX)) return null;
-    for (const L of layout.values()) {
-      if (L.h === 0) closeMinZ = true;
-      if (L.h === 1 && Math.abs(L.xr - maxX) < 0.5) closeMaxX = true;
-    }
-    const fit = (a, b, openA, openB) => {
-      let span = b - a + openA + openB;
-      if (span <= MAX_PLANE) return [a - openA, b + openB];
-      let over = span - MAX_PLANE;
-      const cutA = Math.min(openA, over); openA -= cutA; over -= cutA;
-      const cutB = Math.min(openB, over); openB -= cutB; over -= cutB;
-      a -= openA; b += openB;
-      if (over > 0) { a += over / 2; b -= over / 2; }
-      return [a, b];
-    };
-    const [xa, xb] = fit(minX, maxX, margin, closeMaxX ? 0 : margin);
-    const [za, zb] = fit(minZ, maxZ, closeMinZ ? 0 : margin, margin);
-    return { xa, xb, za, zb };
+    return { xa: minX - margin, xb: maxX + margin, za: minZ - margin, zb: maxZ + margin };
   }
 
   // The notch shows a strip of the wall drawing beside the mat. Drop the light
@@ -168,13 +152,13 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     for (const w of walls.values()) {
       const mat = w.el.querySelector('#doormat');
       const L = layout.get(w.id);
-      if (!mat || !L || L.h !== 0) continue;
+      if (!mat || !L || L.k !== 0) continue;
       hideMatHighlight(w);
       const bb = mat.getBBox();
       if (!bb.width) continue;
       notches.push({
-        a: L.x0 + (bb.x / 1600) * W,
-        b: L.x0 + ((bb.x + bb.width) / 1600) * W,
+        a: L.O.x + (bb.x / 1600) * W,
+        b: L.O.x + ((bb.x + bb.width) / 1600) * W,
         yUnits: bb.y + bb.height,
       });
     }
@@ -242,8 +226,9 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     const s = Math.min(vw / (f.w * k), vh / (f.h * k));
     const u = (f.x + f.w / 2) * k; // distance along the wall
     const y = wallTop + (f.y + f.h / 2) * k;
-    if (L.h === 0) return { x: L.x0 + u, y, z: P / s, yaw: 0, s };
-    return { x: L.xr - P / s, y, z: L.z0 + u, yaw: 90, s };
+    // E = O + d*u + n*Dist, with Dist = P / s.
+    const dist = P / s;
+    return { x: L.O.x + L.d.x * u + L.n.x * dist, y, z: L.O.z + L.d.z * u + L.n.z * dist, yaw: 90 * L.k, s };
   }
 
   function apply() {
@@ -289,43 +274,77 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     });
   }
 
-  // Corner turn between two walls' focus frames (demo math). Works in both
-  // directions: the pose goes from fromWall's pose to toWall's pose.
+  // Corner turn between two walls' focus frames (walls/route-demo.html math). The corner is
+  // found from route.segments (between: [a, b]); going b -> a runs the same path with t reversed.
+  //  corner_90 (inside): eased E lerp, yaw lerp, pull back along -look by pull_back * P * sin(pi * e).
+  //  corner_90_outside (cube): E orbits the corner point C at a radius lerped between |A - C| and
+  //  |B - C|, yaw lerps (decreasing), so at e = 0.5 the edge is centred on screen.
   function turn(fromId, toId, { duration, ease, pullBack, instant = false } = {}) {
-    const a = compute(fromId, 'focus-frame');
-    const b = compute(toId, 'focus-frame');
-    if (!a || !b) return Promise.resolve();
-    const dur = duration != null ? duration : (cornerSeg && cornerSeg.duration_s) || 2.8;
-    const eas = ease || (cornerSeg && cornerSeg.ease) || 'power2.inOut';
-    const pb = pullBack != null ? pullBack : (cornerSeg && cornerSeg.pull_back) || 0.1;
+    const corner = corners.find((c) => (c.between[0] === fromId && c.between[1] === toId)
+      || (c.between[0] === toId && c.between[1] === fromId));
+    const rev = !!corner && corner.between[0] === toId;
+    const idA = corner ? corner.between[0] : fromId;
+    const idB = corner ? corner.between[1] : toId;
+    const A = compute(idA, 'focus-frame');
+    const B = compute(idB, 'focus-frame');
+    const to = rev ? A : B;
+    if (!A || !B) return Promise.resolve();
+    const seg = (corner && corner.seg) || cornerSeg || {};
+    const outside = !!corner && corner.type === 'corner_90_outside';
+    const dur = duration != null ? duration : seg.duration_s || 2.8;
+    // The cube turn is already shaped by easeInOutCubic (e) like in the demo, so its time runs linear.
+    const eas = ease || (outside ? 'none' : seg.ease) || 'power2.inOut';
+    const pb = pullBack != null ? pullBack : (seg.pull_back != null ? seg.pull_back : 0.1);
     if (tween) tween.kill();
     target = { wallId: toId, frameId: 'focus-frame' };
 
+    // Corner point C = end of the earlier wall (A's wall).
+    const LA = layout.get(idA);
+    const C = LA ? { x: LA.O.x + LA.d.x * dims.wallPx, z: LA.O.z + LA.d.z * dims.wallPx } : null;
+    let phiS = 0, dPhi = 0, rS = 0, rE = 0;
+    if (outside && C) {
+      phiS = Math.atan2(A.z - C.z, A.x - C.x);
+      dPhi = Math.atan2(B.z - C.z, B.x - C.x) - phiS;
+      while (dPhi > Math.PI) dPhi -= 2 * Math.PI;
+      while (dPhi < -Math.PI) dPhi += 2 * Math.PI; // shortest signed angle
+      rS = Math.hypot(A.x - C.x, A.z - C.z);
+      rE = Math.hypot(B.x - C.x, B.z - C.z);
+    }
+
     const at = (t) => {
-      const e = easeInOutCubic(t);
-      const yaw = a.yaw + (b.yaw - a.yaw) * e;
-      const r = yaw * Math.PI / 180;
-      let ex = a.x + (b.x - a.x) * e;
-      const ey = a.y + (b.y - a.y) * e;
-      let ez = a.z + (b.z - a.z) * e;
-      const pull = pb * P * Math.sin(Math.PI * e); // pull back mid-turn to see both walls
-      ex -= pull * Math.sin(r);
-      ez += pull * Math.cos(r);
+      const tt = rev ? 1 - t : t; // path is always A -> B
+      const e = easeInOutCubic(tt);
+      const ey = lerp(A.y, B.y, e);
+      const yaw = lerp(A.yaw, B.yaw, e);
+      let ex, ez;
+      if (outside && C) {
+        const r = lerp(rS, rE, e);
+        const phi = phiS + dPhi * e;
+        ex = C.x + r * Math.cos(phi);
+        ez = C.z + r * Math.sin(phi);
+      } else {
+        const r = yaw * Math.PI / 180;
+        const pull = pb * P * Math.sin(Math.PI * e); // pull back mid-turn to see both walls
+        ex = lerp(A.x, B.x, e) - pull * Math.sin(r);
+        ez = lerp(A.z, B.z, e) + pull * Math.cos(r);
+      }
       cam.x = ex; cam.y = ey; cam.z = ez; cam.yaw = yaw;
       apply();
       log('turn t=' + t.toFixed(3));
     };
 
+    const cut = instant || api.instant || dur <= 0
+      || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     return new Promise((resolve) => {
       const done = () => {
         tween = null;
-        setPose(b);
+        setPose(to);
         apply();
         log(`${toId}/focus-frame`);
         if (api.onArrive) api.onArrive(toId, 'focus-frame');
         resolve();
       };
-      if (instant || api.instant || dur <= 0) { done(); return; }
+      if (cut) { done(); return; }
       const prog = { t: 0 };
       at(0);
       tween = window.gsap.to(prog, { t: 1, duration: dur, ease: eas, onUpdate: () => at(prog.t), onComplete: done });

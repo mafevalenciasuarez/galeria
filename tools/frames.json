@@ -252,6 +252,74 @@
       "hide": [
         "paper-kid"
       ]
+    },
+    "wall-04-ai-training": {
+      "group": "focus-frames",
+      "annotations": "wall-04-extras.frag.svg",
+      "annotations_group": "wall-extras",
+      "hide": [
+        "jelly-2",
+        "jelly-3",
+        "jelly-4"
+      ],
+      "rects": [
+        {
+          "id": "focus-frame",
+          "x": 0,
+          "y": 0,
+          "w": 1600,
+          "h": 900,
+          "purpose": "Vista general de la pared"
+        },
+        {
+          "id": "focus-monitor",
+          "x": 0,
+          "y": 92,
+          "w": 800,
+          "h": 450,
+          "purpose": "Monitor con la medusa, la cámara y las barras"
+        },
+        {
+          "id": "focus-cards",
+          "x": 0,
+          "y": 430,
+          "w": 720,
+          "h": 405,
+          "purpose": "Estante con las cuatro tarjetas de expresión"
+        },
+        {
+          "id": "focus-thermos",
+          "x": 590,
+          "y": 0,
+          "w": 853,
+          "h": 480,
+          "purpose": "Los dos termómetros y sus rótulos"
+        },
+        {
+          "id": "focus-pegboard",
+          "x": 640,
+          "y": 470,
+          "w": 560,
+          "h": 315,
+          "purpose": "Tablero de herramientas con el hueco vacío"
+        },
+        {
+          "id": "focus-content",
+          "x": 1080,
+          "y": 224,
+          "w": 520,
+          "h": 292.5,
+          "purpose": "Panel de contenido"
+        },
+        {
+          "id": "focus-speaker",
+          "x": 1109,
+          "y": 0,
+          "w": 480,
+          "h": 270,
+          "purpose": "Altavoz de la sala"
+        }
+      ]
     }
   },
   "note_map_views": "Los view-* son rectángulos en coordenadas del mapa y deben tener la proporción de map-slot (520 x 415,1 = 1,2527), no 16:9."

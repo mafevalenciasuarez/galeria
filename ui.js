@@ -73,6 +73,51 @@ function videoBars(ev) {
   return sub('Videos: promedio de autoevaluación (sobre 100)', para(note, 'muted'), ul);
 }
 
+// Sala 4: the two printed means of dimension 1, with the note about the possible label swap.
+function cmltBlock(ev) {
+  const c = ev && ev.dimension_1_cmlt;
+  if (!c) return [];
+  const rows = [];
+  const measure = (label, mean, sd) => (typeof mean === 'number' ? `${label}: media ${fmt(mean)}${typeof sd === 'number' ? ` (DE ${fmt(sd)})` : ''}` : null);
+  const names = (((ev.lab || {}).thermometers || {}).items || []);
+  const first = (names.find((i) => i.measure === 'first') || {}).label || 'Primera medición';
+  const second = (names.find((i) => i.measure === 'second') || {}).label || 'Segunda medición';
+  rows.push(measure(first, c.first_measure_mean, c.first_measure_sd), measure(second, c.second_measure_mean, c.second_measure_sd));
+  if (typeof c.t === 'number') {
+    rows.push(`t${typeof c.df === 'number' ? `(${c.df})` : ''} = ${fmt(c.t)}${typeof c.cohens_d === 'number' ? `; d de Cohen = ${fmt(c.cohens_d)}` : ''}`);
+  }
+  return sub('Dimensión 1: medias impresas', list(rows.filter(Boolean)), para(c.labels_note, 'muted'));
+}
+
+// Sala 4: share of positive answers per item (dimension 2), with r and p.
+function dimension2Bars(ev) {
+  const items = ev && ev.dimension_2_items;
+  if (!has(items)) return [];
+  const ul = el('ul', { class: 'chart dim2-chart', 'aria-label': 'Porcentaje de respuestas positivas por ítem' });
+  items.forEach((it) => {
+    const pct = it.positive_pct;
+    const stats = [typeof it.r === 'number' ? `r = ${fmt(it.r)}` : null, has(it.p) ? `p ${/^[<>=]/.test(it.p) ? it.p : `= ${it.p}`}` : null].filter(Boolean).join('; ');
+    ul.append(el('li', {},
+      el('span', { class: 'chart-label' }, it.item, stats ? el('span', { class: 'muted' }, ` (${stats})`) : null),
+      el('span', { class: 'chart-track', 'aria-hidden': 'true' }, el('span', { class: 'chart-bar', style: `width:${Math.max(0, Math.min(100, pct))}%` })),
+      el('strong', { class: 'chart-value' }, `${fmt(pct)} %`)));
+  });
+  return sub('Dimensión 2: respuestas positivas por ítem (%)', ul);
+}
+
+// Sala 4: item 1.3 split by prior Scratch experience.
+function scratchBlock(ev) {
+  const s = ev && ev.scratch_experience_item_1_3;
+  if (!s) return [];
+  const item = ((ev.dimension_2_items || []).find((i) => /^1\.3\b/.test(i.item || '')) || {}).item;
+  const rows = [
+    typeof s.with_scratch_mean === 'number' ? `Con experiencia en Scratch: media ${fmt(s.with_scratch_mean)}` : null,
+    typeof s.without_scratch_mean === 'number' ? `Sin experiencia en Scratch: media ${fmt(s.without_scratch_mean)}` : null,
+    typeof s.r === 'number' ? `r = ${fmt(s.r)}` : null,
+  ].filter(Boolean);
+  return sub('Ítem 1.3 según experiencia previa en Scratch', para(item, 'muted'), list(rows));
+}
+
 const FUNNEL_LABELS = [
   ['initial', 'Estudiantes al inicio'],
   ['final', 'Muestra final'],
@@ -176,6 +221,9 @@ const BUILDERS = {
       ...accessFunnel(d.evidence),
       ...sub('Percepciones', para(d.evidence && d.evidence.perception && d.evidence.perception.denominator_note, 'muted')),
       ...videoBars(d.evidence),
+      ...cmltBlock(d.evidence),
+      ...dimension2Bars(d.evidence),
+      ...scratchBlock(d.evidence),
       ...sub('Fuente (APA 7)', para(d.source && d.source.apa, 'apa')),
       ...sub('Crédito de los datos del mapa', para(d.evidence && d.evidence.map && d.evidence.map.data_credit, 'apa')),
       verify,
@@ -270,7 +318,7 @@ export function createCard({ root, backdrop, tabs, onClose }) {
         close),
       tablist,
       panel,
-      footKids.length ? el('footer', { class: 'card-foot' }, footKids) : null);
+      ...(footKids.length ? [el('footer', { class: 'card-foot' }, footKids)] : []));
     backdrop.hidden = false;
     let index = typeof tab === 'number' ? tab : specList.findIndex((s) => s.id === tab || s.label === tab);
     if (index < 0) index = 0;

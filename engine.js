@@ -5,6 +5,7 @@ import { createCard, createPopup, createTooltip, createAudio, createAmbience } f
 import { initMap } from './map.js';
 import { initRoom2 } from './room2.js';
 import { initRoom3 } from './room3.js';
+import { initRoom4 } from './room4.js';
 import { initFinal, auditPublish } from './roomFinal.js';
 import { createProps } from './props.js';
 import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
@@ -199,7 +200,8 @@ async function main() {
     menu.disabled = busy;
     soundBtn.disabled = !audioFor(current());
     // Only the current wall is reachable by keyboard.
-    stops.forEach((s) => { s.wall.el.inert = s.index !== currentIndex; });
+    // (Nothing is reachable while a corner turn runs.)
+    stops.forEach((s) => { s.wall.el.inert = traveling || s.index !== currentIndex; });
   }
 
   camera.onArrive = (wallId, frameId) => {
@@ -210,6 +212,8 @@ async function main() {
     syncNav();
     if (s.wall.map) { s.wall.map.refresh(); s.wall.map.arrived(); }
     if (s.wall.room3) s.wall.room3.arrived(frameId, entered && frameId === 'focus-frame');
+    stops.forEach((st) => { if (st.wall.room4) st.wall.room4.setActive(st.index === currentIndex); });
+    if (s.wall.room4) s.wall.room4.arrived(frameId);
     if (frameId === 'focus-content' && s.data && !card.isOpen() && !busy) {
       card.open(s.data, { tab: pendingTab, ...pendingOpts });
       pendingTab = 0;
@@ -217,11 +221,14 @@ async function main() {
     }
   };
 
-  // ---------- Corner turn (route corner_90) ----------
-  const cornerA = camera.corner ? stopByWall(camera.corner.between[0]) : null;
-  const cornerB = camera.corner ? stopByWall(camera.corner.between[1]) : null;
-  const hasCorner = !!(cornerA && cornerB);
-  const sideOf = (i) => (i <= cornerA.index ? 0 : 1);
+  // ---------- Corner turns (route corner_90 and corner_90_outside) ----------
+  // Each corner splits the route into sides: side s runs from corners[s - 1].b to corners[s].a.
+  const corners = camera.corners
+    .map((c) => ({ type: c.type, a: stopByWall(c.between[0]), b: stopByWall(c.between[1]) }))
+    .filter((c) => c.a && c.b)
+    .sort((x, y) => x.a.index - y.a.index);
+  const hasCorner = corners.length > 0;
+  const sideOf = (i) => corners.filter((c) => c.a.index < i).length;
   let traveling = false;
 
   const live = document.createElement('div');
@@ -231,23 +238,29 @@ async function main() {
   const announce = (text) => { live.textContent = ''; setTimeout(() => { live.textContent = text; }, 30); };
 
   async function travel(i, opts) {
-    const fromSide = sideOf(currentIndex);
-    const fromEdge = fromSide === 0 ? cornerA : cornerB;
-    const toEdge = fromSide === 0 ? cornerB : cornerA;
     traveling = true;
     busy = true;
     syncNav();
     try {
-      // Glide to the corner stop on the current side, turn, then glide to the target.
-      const cur = camera.current;
-      if (currentIndex !== fromEdge.index || !cur || cur.wallId !== fromEdge.wallId || cur.frameId !== 'focus-frame') {
-        await camera.goTo(fromEdge.wallId, 'focus-frame', opts);
+      // For every corner between here and the target: glide to the corner stop on the
+      // current side, run the turn, then (after the last turn) glide to the target.
+      while (sideOf(currentIndex) !== sideOf(i)) {
+        const side = sideOf(currentIndex);
+        const fwd = sideOf(i) > side;
+        const corner = corners[fwd ? side : side - 1];
+        const fromEdge = fwd ? corner.a : corner.b;
+        const toEdge = fwd ? corner.b : corner.a;
+        const cur = camera.current;
+        if (currentIndex !== fromEdge.index || !cur || cur.wallId !== fromEdge.wallId || cur.frameId !== 'focus-frame') {
+          await camera.goTo(fromEdge.wallId, 'focus-frame', opts);
+        }
+        announce(`Girando a la ${toEdge.kind === 'room' ? 'Sala ' + toEdge.index : toEdge.title}`);
+        document.body.classList.add('turning');
+        await camera.turn(fromEdge.wallId, toEdge.wallId, opts && opts.duration === 0 ? { duration: 0 } : {});
+        document.body.classList.remove('turning');
+        if (currentIndex !== toEdge.index) break; // the turn did not land; never loop
       }
-      announce(`Girando a la Sala ${toEdge.index}`);
-      document.body.classList.add('turning');
-      await camera.turn(fromEdge.wallId, toEdge.wallId, opts && opts.duration === 0 ? { duration: 0 } : {});
-      document.body.classList.remove('turning');
-      if (toEdge.index !== i) await camera.goTo(stops[i].wallId, 'focus-frame', opts);
+      if (currentIndex !== i) await camera.goTo(stops[i].wallId, 'focus-frame', opts);
     } finally {
       document.body.classList.remove('turning');
       traveling = false;
@@ -436,6 +449,23 @@ async function main() {
     });
   }
 
+  // ---------- Sala 4 cards, thermometers and pegboard ----------
+  const iaStop = stops.find((s) => s.kind === 'room' && s.room.lab && s.room.pegboard && s.data && !s.wall.placeholder);
+  if (iaStop) {
+    iaStop.wall.room4 = initRoom4({
+      wall: iaStop.wall,
+      room: iaStop.room,
+      data: iaStop.data,
+      isInstant: () => camera.instant,
+      goTo: (frame, opts) => camera.goTo(iaStop.wallId, frame, opts),
+      openCard: (label) => {
+        if (card.isOpen()) return;
+        pendingTab = Math.max(0, tabs.indexOf(label));
+        camera.goTo(iaStop.wallId, 'focus-content');
+      },
+    });
+  }
+
   // ---------- Final room (works with or without wall-05) ----------
   const finalStop = stops.find((s) => s.kind === 'final');
   if (finalStop) {
@@ -463,15 +493,28 @@ async function main() {
     });
     $('debug-field').hidden = false;
     if (hasCorner) {
-      dm.prepend(new Option('Probar giro', 'turn'));
-      dm.prepend(new Option('Marco…', ''));
+      const entries = [
+        ['Marco…', ''],
+        ['Probar giro interior', 'turn-inside', 'corner_90'],
+        ['Probar giro exterior', 'turn-outside', 'corner_90_outside'],
+        ['Probar giro', 'turn', 'corner_90'],
+      ].filter(([, , type]) => !type || corners.some((c) => c.type === type));
+      dm.prepend(...entries.map(([label, value]) => new Option(label, value)));
       dm.selectedIndex = 0;
     }
     dm.addEventListener('change', () => {
       if (!dm.value) return;
       if (dm.value === 'turn') {
+        // Legacy test: cross the first inside corner.
         dm.selectedIndex = 0;
-        showStop(sideOf(currentIndex) === 0 ? cornerB.index : cornerA.index);
+        const c = corners.find((x) => x.type === 'corner_90');
+        if (c) showStop(sideOf(currentIndex) <= sideOf(c.a.index) ? c.b.index : c.a.index);
+        return;
+      }
+      if (dm.value === 'turn-inside' || dm.value === 'turn-outside') {
+        dm.selectedIndex = 0;
+        const c = corners.find((x) => x.type === (dm.value === 'turn-inside' ? 'corner_90' : 'corner_90_outside'));
+        if (c) showStop(sideOf(currentIndex) <= sideOf(c.a.index) ? c.b.index : c.a.index);
         return;
       }
       const [w, f] = dm.value.split('|');

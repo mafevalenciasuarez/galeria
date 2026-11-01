@@ -1,0 +1,11 @@
+    <!-- Áreas invisibles de la Sala 4 (monitor, termómetros, tablero). -->
+    <rect id="monitor-screen" x="73.8" y="146.3" width="595.1" height="329.1" fill="none"/>
+    <rect id="webcam-slot" x="88.9" y="163" width="106.2" height="69.6" fill="none"/>
+    <rect id="bars-slot" x="470.8" y="161.1" width="183.5" height="255" fill="none"/>
+    <rect id="bars-caption-slot" x="470.8" y="420" width="183.5" height="40" fill="none"/>
+    <rect id="thermo-1-tube" x="994.9" y="164.3" width="12.6" height="234.5" fill="none"/>
+    <rect id="thermo-2-tube" x="842.1" y="164.3" width="12.6" height="234.5" fill="none"/>
+    <rect id="thermo-1-label" x="953.4" y="60" width="101.1" height="50" fill="none"/>
+    <rect id="thermo-2-label" x="800.6" y="60" width="101.1" height="50" fill="none"/>
+    <rect id="thermo-note-slot" x="800.6" y="14" width="254.5" height="40" fill="none"/>
+    <rect id="missing-tool" x="996" y="509" width="55" height="172" fill="none" pointer-events="all"/>

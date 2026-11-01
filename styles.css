@@ -30,12 +30,15 @@ body { overflow: hidden; }
   background: var(--floor);
 }
 #world { position: absolute; inset: 0; transform-origin: 0 0; transform-style: preserve-3d; will-change: transform; }
-body.turning #world { pointer-events: none; }
+body.turning #world, body.turning .wall, body.turning .wall * { pointer-events: none !important; }
 
 .wall {
   position: absolute;
   transform-origin: 0 0;
   backface-visibility: hidden;
+  /* Own compositor layer with a fixed raster scale: without it Chrome re-rasters the wall while the
+     camera moves toward it, and for a few frames only the cream background shows (corner turns). */
+  will-change: transform;
   aspect-ratio: 16 / 9;
   container-type: size;
   overflow: hidden;
@@ -397,6 +400,53 @@ button, select { font: 600 16px/1.2 var(--sans); }
   align-self: flex-start; padding: 0.3cqw 0.9cqw; border: 0.15cqw solid var(--wood); border-radius: 0.5cqw;
   background: var(--accent); color: var(--ink); font: 700 0.95cqw/1 var(--sans); cursor: pointer;
 }
+
+/* ---------- Sala 4: bars, thermometer labels, note and pegboard popovers ---------- */
+.dim2-chart li { grid-template-columns: minmax(190px, 42%) 1fr 4.6em; }
+@media (max-width: 560px) { .dim2-chart li { grid-template-columns: 1fr 4.6em; } }
+
+.overlay > .lab-bars {
+  display: flex; flex-direction: column; justify-content: space-between; pointer-events: none;
+  color: #fbf5e6; font-family: var(--sans);
+}
+.lab-bars-hint { margin: 0; text-align: center; font: 700 0.85cqw/1.15 var(--sans); }
+.lab-bar-row { display: grid; grid-template-columns: 3.5cqw 1fr 2.6cqw; align-items: center; gap: 0.45cqw; font: 700 0.9cqw/1 var(--sans); }
+.lab-bar-track { display: block; height: 1.3cqw; background: rgba(251, 245, 230, 0.2); border-radius: 0.3cqw; overflow: hidden; }
+.lab-bar-fill { display: block; height: 100%; width: 0; }
+.lab-bar-pct { text-align: right; font-variant-numeric: tabular-nums; }
+.overlay > .lab-caption { margin: 0; pointer-events: none; overflow: visible; color: #fbf5e6; font: 600 0.78cqw/1.2 var(--sans); }
+
+.overlay > .thermo-label {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0;
+  border: 0; border-radius: 0.4cqw; background: transparent; color: var(--ink); cursor: pointer; text-align: center;
+}
+.thermo-label:hover { background: rgba(255, 255, 255, 0.14); }
+.thermo-label:focus-visible { outline: 0.4cqw solid #0b57d0; outline-offset: 0.2cqw; box-shadow: 0 0 0 0.2cqw #fff; }
+.tl-name, .tl-sd { font: 600 0.7cqw/1.1 var(--sans); }
+.tl-value { font: 700 1.6cqw/1 var(--serif); }
+
+.overlay > .thermo-note-btn {
+  display: flex; align-items: center; justify-content: center; padding: 0 0.8cqw;
+  border: 0.16cqw solid var(--wood); border-radius: 0.7cqw; cursor: pointer;
+  background: var(--accent); color: var(--ink); font: 700 1.3cqw/1.1 var(--sans);
+}
+.thermo-note-btn:focus-visible, .tool-hotspot:focus-visible { outline: 0.4cqw solid #0b57d0; outline-offset: 0.3cqw; box-shadow: 0 0 0 0.2cqw #fff; }
+.overlay > .tool-hotspot { padding: 0; border: 0; background: transparent; }
+
+.overlay > .lab-pop {
+  display: flex; flex-direction: column; gap: 0.6cqw; padding: 0.9cqw 1.1cqw;
+  border: 0.2cqw solid var(--wood); border-radius: 0.6cqw; background: #fbf5e6; color: var(--ink);
+}
+.lab-pop[hidden] { display: none; }
+.lab-pop-title { margin: 0; font: 700 1.3cqw/1.2 var(--serif); }
+.lab-pop-text { margin: 0; font: 600 1.1cqw/1.4 var(--sans); }
+.lab-pop-row { display: flex; flex-wrap: wrap; gap: 0.6cqw; }
+.lab-pop-btn {
+  padding: 0.4cqw 1cqw; border: 0.15cqw solid var(--wood); border-radius: 0.5cqw;
+  background: #fff; color: var(--ink); font: 700 1cqw/1.1 var(--sans); cursor: pointer;
+}
+.lab-pop-action { background: var(--wainscot); border-color: var(--wainscot); color: #fff; }
+.lab-pop-btn:focus-visible { outline: 0.3cqw solid #0b57d0; outline-offset: 0.2cqw; }
 
 /* ---------- Final room: stand-ins and reflection card ---------- */
 .stand-in {
