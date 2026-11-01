@@ -6,7 +6,6 @@ export function createCamera({ scene, world, P = 1200, debug = false }) {
   const walls = new Map(); // wallId -> { id, index, el, frames: Map(frameId -> {x,y,w,h}) }
   const dims = { vw: 0, vh: 0, wallPx: 0, wallTop: 0 };
   const cam = { x: 0, y: 0, z: 0 };
-  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   let target = null;
   let tween = null;
 
@@ -14,7 +13,8 @@ export function createCamera({ scene, world, P = 1200, debug = false }) {
     P,
     userInstant: false,
     onArrive: null,
-    get instant() { return motionQuery.matches || api.userInstant || !window.gsap; },
+    // The OS reduced-motion setting does not drive this. Only the gallery button does.
+    get instant() { return api.userInstant || !window.gsap; },
     get current() { return target; },
     get state() { return { ...cam, s: P / (P - cam.z) }; },
   };

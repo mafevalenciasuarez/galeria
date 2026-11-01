@@ -149,10 +149,8 @@ async function main() {
   soundBtn.addEventListener('click', toggleSpeaker);
 
   const noanim = $('btn-noanim');
-  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const motionOn = () => noanim.getAttribute('aria-pressed') === 'true';
   const syncMotion = () => {
-    if (motionQuery.matches) noanim.setAttribute('aria-pressed', 'true');
     camera.userInstant = motionOn();
     document.body.classList.toggle('no-anim', camera.instant);
     const text = motionOn() ? 'Sin animación: activado' : 'Sin animación: desactivado';
@@ -163,7 +161,6 @@ async function main() {
     noanim.setAttribute('aria-pressed', motionOn() ? 'false' : 'true');
     syncMotion();
   });
-  motionQuery.addEventListener('change', syncMotion);
   syncMotion();
 
   document.addEventListener('keydown', (e) => {

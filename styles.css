@@ -230,10 +230,7 @@ button, select { font: 600 16px/1.2 var(--sans); }
 #file-warning h1 { font: 700 28px/1.2 var(--serif); }
 .is-file #scene, .is-file #navbar { display: none; }
 
-/* ---------- Reduced motion / no animation ---------- */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-}
+/* The gallery button owns this. The OS reduced-motion setting does not. */
 .no-anim *, .no-anim *::before, .no-anim *::after { animation: none !important; transition: none !important; }
 
 /* ---------- Sala 1 map ---------- */
