@@ -57,30 +57,39 @@ function mountWaves(wall, art) {
 // the moment any part of it crossed the viewport edge.
 function mountSky(host) {
   const world = host[0].el.parentElement;
-  const n = Math.max(...host.map((w) => w.index)) + 1;
   const layer = document.createElement('div');
   layer.className = 'plane-host';
   world.parentElement.append(layer);
-  const sky = svgEl('svg', {
-    class: 'plane-sky', viewBox: `0 0 ${n * 1600} 900`,
-    preserveAspectRatio: 'none', overflow: 'visible', 'aria-hidden': 'true',
+  // One sky per wall, sharing the wall's own transform (walls may be rotated at a corner).
+  const skies = new Map();
+  host.forEach((wall) => {
+    const sky = svgEl('svg', {
+      class: 'plane-sky', viewBox: '0 0 1600 900',
+      preserveAspectRatio: 'none', overflow: 'visible', 'aria-hidden': 'true',
+    });
+    layer.append(sky);
+    skies.set(wall, sky);
   });
-  layer.append(sky);
   const sync = () => {
-    const first = host[0].el;
-    const w = parseFloat(first.style.width);
-    const h = parseFloat(first.style.height);
-    if (!w || !h) return;
-    sky.style.left = first.style.left || '0px';
-    sky.style.top = first.style.top || '0px';
-    sky.style.width = (w * n) + 'px';
-    sky.style.height = h + 'px';
-    layer.style.transform = world.style.transform;
+    // Each sky copies its wall's full transform (camera included), so the layer itself stays untransformed.
+    skies.forEach((sky, wall) => {
+      const el = wall.el;
+      const w = parseFloat(el.style.width);
+      const h = parseFloat(el.style.height);
+      if (!w || !h) return;
+      sky.style.left = el.style.left || '0px';
+      sky.style.top = el.style.top || '0px';
+      sky.style.width = w + 'px';
+      sky.style.height = h + 'px';
+      sky.style.transformOrigin = '0 0';
+      sky.style.transform = el.style.transform;
+    });
   };
   sync();
   window.addEventListener('resize', sync);
-  new MutationObserver(sync).observe(world, { attributes: true, attributeFilter: ['style'] });
-  return sky;
+  const mo = new MutationObserver(sync);
+  host.forEach((wall) => mo.observe(wall.el, { attributes: true, attributeFilter: ['style'] }));
+  return skies;
 }
 
 export function createProps({ stops, isInstant }) {
@@ -178,11 +187,13 @@ export function createProps({ stops, isInstant }) {
     if (!candidates.length) return;
     if (!sky) sky = mountSky(candidates);
     const wall = candidates[Math.floor(Math.random() * candidates.length)];
+    const skyEl = sky.get(wall);
+    if (!skyEl) return;
     const g = adopt(planeArt);
     g.setAttribute('class', 'paper-plane');
     g.setAttribute('pointer-events', 'none');
     g.setAttribute('aria-hidden', 'true');
-    sky.append(g);
+    skyEl.append(g);
     const vb = planeArt.viewBox.baseVal;
     const scale = 155 / (vb.width || 1777);
     // The drawing's nose points the wrong way, so the facing is opposite the travel.
@@ -199,7 +210,7 @@ export function createProps({ stops, isInstant }) {
     const y1 = y0 + (Math.random() * 70 - 20);
     const start = dir > 0 ? -reach : 1600 + reach;
     const end = dir > 0 ? 1600 + reach : -reach;
-    const origin = wall.index * 1600;
+    const origin = 0; // each wall has its own sky
     const state = { x: start, y: y0 };
     const place = () => g.setAttribute('transform',
       `translate(${r3(origin + state.x)} ${r3(state.y)}) scale(${r3(face * scale)} ${r3(scale)}) rotate(${tilt}) translate(${r3(-cx)} ${r3(-cy)})`);

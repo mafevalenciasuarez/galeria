@@ -7,6 +7,75 @@ import { initRoom2 } from './room2.js';
 import { initRoom3 } from './room3.js';
 import { initFinal, auditPublish } from './roomFinal.js';
 import { createProps } from './props.js';
+import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
+
+// One wood tile for the whole session. A failed canvas falls back to the flat grid.
+let woodTextureUrl = null;
+let woodFallbackWarned = false;
+
+function gridStyle(c) {
+  const gap = Math.max(0, c.grid_px - c.grid_line_px);
+  const stop = `transparent 0 ${gap}px, ${c.grid_color} ${gap}px ${c.grid_px}px`;
+  return {
+    backgroundColor: c.color,
+    backgroundImage: `repeating-linear-gradient(0deg, ${stop}), repeating-linear-gradient(90deg, ${stop})`,
+  };
+}
+
+function floorStyle(f) {
+  const w = f.line_width_px;
+  const zGap = Math.max(0, f.line_px - w);
+  const cGap = Math.max(0, f.cross_px - w);
+  return {
+    backgroundColor: f.color,
+    backgroundImage: [
+      `repeating-linear-gradient(180deg, transparent 0 ${zGap}px, ${f.line_color} ${zGap}px ${f.line_px}px)`,
+      `repeating-linear-gradient(90deg, transparent 0 ${cGap}px, ${f.cross_line_color} ${cGap}px ${f.cross_px}px)`,
+    ].join(', '),
+  };
+}
+
+function ceilingStyle(ceiling) {
+  if (ceiling.type !== 'wood') return gridStyle(ceiling);
+  try {
+    if (!woodTextureUrl) {
+      woodTextureUrl = makeWoodTexture({
+        tilePx: ceiling.tile_px, plankPx: ceiling.plank_px,
+        seed: ceiling.seed, knotProb: ceiling.knot_prob,
+      });
+    }
+    return woodCeilingStyle(woodTextureUrl, {
+      tilePx: ceiling.tile_px, base: ceiling.base_color,
+      edgeLinePx: ceiling.edge_line_px, edgeLineColor: ceiling.edge_line_color,
+    });
+  } catch (err) {
+    if (!woodFallbackWarned) {
+      console.warn('[ceiling] sin lienzo, se usa la cuadrícula', err);
+      woodFallbackWarned = true;
+    }
+    return gridStyle(ceiling);
+  }
+}
+
+// Horizontal planes in the same 3D context as the walls. Nothing is built when both are off.
+function mountPlanes(world, route, camera) {
+  const cfg = (route && route.world) || {};
+  const ceiling = cfg.ceiling;
+  const floor = cfg.floor;
+  if (!(ceiling && ceiling.enabled) && !(floor && floor.enabled)) return;
+  const planes = [];
+  const add = (kind, style, yUnits) => {
+    const el = document.createElement('div');
+    el.className = 'plane ' + kind;
+    el.setAttribute('aria-hidden', 'true');
+    Object.assign(el.style, style);
+    world.append(el);
+    planes.push({ el, yUnits });
+  };
+  if (ceiling && ceiling.enabled) add('ceiling', ceilingStyle(ceiling), ceiling.y_units);
+  if (floor && floor.enabled) add('floor', floorStyle(floor), floor.y_units);
+  camera.setPlanes(planes);
+}
 
 const $ = (id) => document.getElementById(id);
 const debug = new URLSearchParams(location.search).get('debug') === '1';
@@ -45,7 +114,9 @@ async function main() {
 
   const scene = $('scene');
   const world = $('world');
-  const camera = createCamera({ scene, world, debug });
+  const route = gallery.route || null;
+  if (route && route.world && route.world.scene_background) scene.style.background = route.world.scene_background;
+  const camera = createCamera({ scene, world, route, debug });
 
   const walls = await Promise.all(stops.map((s) => loadWall({ index: s.index, id: s.wallId, svgPath: s.svg, title: s.title, framesFallback })));
   const fillSvg = await fetch('walls/wall-fill.svg').then((r) => (r.ok ? r.text() : null)).catch(() => null);
@@ -58,6 +129,7 @@ async function main() {
     world.append(w.el);
     camera.register(w);
   });
+  mountPlanes(world, route, camera);
   camera.measure();
 
   // Focus can scroll an overflow:hidden container; keep the scene pinned.
@@ -145,9 +217,50 @@ async function main() {
     }
   };
 
+  // ---------- Corner turn (route corner_90) ----------
+  const cornerA = camera.corner ? stopByWall(camera.corner.between[0]) : null;
+  const cornerB = camera.corner ? stopByWall(camera.corner.between[1]) : null;
+  const hasCorner = !!(cornerA && cornerB);
+  const sideOf = (i) => (i <= cornerA.index ? 0 : 1);
+  let traveling = false;
+
+  const live = document.createElement('div');
+  live.className = 'sr-only';
+  live.setAttribute('aria-live', 'polite');
+  document.body.append(live);
+  const announce = (text) => { live.textContent = ''; setTimeout(() => { live.textContent = text; }, 30); };
+
+  async function travel(i, opts) {
+    const fromSide = sideOf(currentIndex);
+    const fromEdge = fromSide === 0 ? cornerA : cornerB;
+    const toEdge = fromSide === 0 ? cornerB : cornerA;
+    traveling = true;
+    busy = true;
+    syncNav();
+    try {
+      // Glide to the corner stop on the current side, turn, then glide to the target.
+      const cur = camera.current;
+      if (currentIndex !== fromEdge.index || !cur || cur.wallId !== fromEdge.wallId || cur.frameId !== 'focus-frame') {
+        await camera.goTo(fromEdge.wallId, 'focus-frame', opts);
+      }
+      announce(`Girando a la Sala ${toEdge.index}`);
+      document.body.classList.add('turning');
+      await camera.turn(fromEdge.wallId, toEdge.wallId, opts && opts.duration === 0 ? { duration: 0 } : {});
+      document.body.classList.remove('turning');
+      if (toEdge.index !== i) await camera.goTo(stops[i].wallId, 'focus-frame', opts);
+    } finally {
+      document.body.classList.remove('turning');
+      traveling = false;
+      busy = false;
+      syncNav();
+    }
+  }
+
   const showStop = (i, opts) => {
+    if (traveling) return Promise.resolve();
     popup.hide();
     tip.hide();
+    if (hasCorner && sideOf(currentIndex) !== sideOf(i)) return travel(i, opts);
     return camera.goTo(stops[i].wallId, 'focus-frame', opts);
   };
 
@@ -161,15 +274,43 @@ async function main() {
   const syncMotion = () => {
     camera.userInstant = motionOn();
     document.body.classList.toggle('no-anim', camera.instant);
-    const text = motionOn() ? 'Sin animación: activado' : 'Sin animación: desactivado';
-    noanim.setAttribute('aria-label', text);
-    noanim.title = text;
+    const label = noanim.querySelector('.nav-pill-label');
+    const short = motionOn() ? 'Sin movimiento' : 'Con movimiento';
+    const hint = motionOn()
+      ? 'Las salas cambian de un salto. Pulsa para volver a ver la animación.'
+      : 'Las salas se recorren con animación. Pulsa para verlas quietas.';
+    if (label) label.textContent = short;
+    noanim.setAttribute('aria-label', short);
+    noanim.title = hint;
   };
   noanim.addEventListener('click', () => {
     noanim.setAttribute('aria-pressed', motionOn() ? 'false' : 'true');
     syncMotion();
   });
   syncMotion();
+
+  const fsBtn = $('btn-fullscreen');
+  const fsTarget = document.documentElement;
+  const requestFs = fsTarget.requestFullscreen || fsTarget.webkitRequestFullscreen;
+  if (!requestFs) fsBtn.hidden = true;
+  else {
+    const fsNow = () => document.fullscreenElement || document.webkitFullscreenElement;
+    const syncFs = () => {
+      const on = !!fsNow();
+      fsBtn.setAttribute('aria-pressed', String(on));
+      const text = on ? 'Salir de pantalla completa' : 'Pantalla completa';
+      fsBtn.setAttribute('aria-label', text);
+      fsBtn.title = text;
+    };
+    fsBtn.addEventListener('click', () => {
+      const done = fsNow()
+        ? (document.exitFullscreen || document.webkitExitFullscreen).call(document)
+        : requestFs.call(fsTarget);
+      if (done && done.catch) done.catch(() => {});
+    });
+    document.addEventListener('fullscreenchange', syncFs);
+    document.addEventListener('webkitfullscreenchange', syncFs);
+  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -321,7 +462,21 @@ async function main() {
       dm.append(g);
     });
     $('debug-field').hidden = false;
-    dm.addEventListener('change', () => { const [w, f] = dm.value.split('|'); camera.goTo(w, f); });
+    if (hasCorner) {
+      dm.prepend(new Option('Probar giro', 'turn'));
+      dm.prepend(new Option('Marco…', ''));
+      dm.selectedIndex = 0;
+    }
+    dm.addEventListener('change', () => {
+      if (!dm.value) return;
+      if (dm.value === 'turn') {
+        dm.selectedIndex = 0;
+        showStop(sideOf(currentIndex) === 0 ? cornerB.index : cornerA.index);
+        return;
+      }
+      const [w, f] = dm.value.split('|');
+      camera.goTo(w, f);
+    });
     window.__camera = camera;
     window.__props = props;
   }

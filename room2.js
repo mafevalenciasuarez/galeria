@@ -192,10 +192,14 @@ export function initRoom2({ wall, room, data, isInstant }) {
 
     const stagger = cfg.stagger_s || 0.03;
     const wrap = make('div', 'lockers-ui');
+    const boardSlot = q(wall, '#board-slot');
+    const boardBox = boardSlot && boardSlot.getBBox();
     const span = sources[sources.length - 1].box;
-    const midX = (sources[0].box.x + span.x + span.w) / 2;
+    const midX = boardBox ? boardBox.x + boardBox.width / 2 : (sources[0].box.x + span.x + span.w) / 2;
+    // Below "Girar la pizarra", on the dark green wainscot. y=868 sat on the floor band.
+    const midY = boardBox ? boardBox.y + boardBox.height + 130 : UI_CENTER.y;
     wrap.style.left = `${midX / VB.w * 100}%`;
-    wrap.style.top = `${UI_CENTER.y / VB.h * 100}%`;
+    wrap.style.top = `${midY / VB.h * 100}%`;
     const btn = make('button', 'lockers-toggle', L.toggle_label);
     btn.type = 'button';
     btn.setAttribute('aria-pressed', 'false');

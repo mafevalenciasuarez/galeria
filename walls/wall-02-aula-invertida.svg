@@ -615,4 +615,5 @@
     <rect id="focus-content" x="1080" y="224" width="520" height="292.5"/>
     <rect id="focus-speaker" x="1109" y="0" width="480" height="270"/>
   </g>
+  <rect id="corner-seam" x="1597.5" y="0" width="2.5" height="900" fill="#241c18" pointer-events="none"/>
 </svg>
