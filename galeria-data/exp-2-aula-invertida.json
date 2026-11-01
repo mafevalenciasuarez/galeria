@@ -1,0 +1,300 @@
+{
+  "id": "exp-aula-invertida-mate",
+  "order": 2,
+  "room": {
+    "title": "Sala 2 · El aula invertida en matemáticas",
+    "technology_role": "Infraestructura: la TIC reorganiza el tiempo de clase para sostener un modelo pedagógico",
+    "technology_role_tag": "infrastructure"
+  },
+  "source": {
+    "apa": "Rodríguez-Jiménez, F. J., Pérez-Ochoa, M. E., & Ulloa-Guerra, Ó. (2024). Innovación educativa: Explorando el impacto del aula invertida en el rendimiento académico de estudiantes de secundaria en matemática. Revista Educación, 48(1). https://doi.org/10.15517/revedu.v48i1.55892",
+    "year": 2024,
+    "country": "República Dominicana",
+    "level": "Secundaria (tercer grado, 13 a 16 años)",
+    "document_type": "Artículo científico (Revista Educación, Universidad de Costa Rica)",
+    "access": "Abierto"
+  },
+  "context": {
+    "summary": "Liceo Ercilia Pepín, San Francisco de Macorís, centro público. Matemática (álgebra y polinomios) en tercer grado de secundaria, de octubre de 2021 a marzo de 2022, en contexto postpandemia.",
+    "details": [
+      "134 estudiantes al inicio y 115 en la muestra final (57 en el grupo experimental y 58 en el de control), con 2 docentes.",
+      "Grupos intactos, no asignados al azar."
+    ]
+  },
+  "pedagogical_approach": {
+    "summary": "Modelo activo centrado en el estudiante que traslada la transmisión de contenidos fuera del aula para liberar el tiempo presencial a la práctica colaborativa. Se estructura en tres momentos (antes, durante y después de la clase) y se planifica con el diseño instruccional ADDIE.",
+    "frameworks": [
+      "Aula invertida (Bergmann y Sams, citados vía Wang y Zhu, 2019)",
+      "Tres momentos de la clase invertida (Villalba et al., 2018)",
+      "Diseño instruccional ADDIE",
+      "Paradigma empírico-positivista cuantitativo"
+    ]
+  },
+  "active_methodology": {
+    "name": "Aula invertida con diseño instruccional ADDIE",
+    "summary": "Antes: 14 videos cortos (unos 48 minutos en total) con preguntas de autoevaluación en Edpuzzle. Durante: talleres colaborativos de resolución de problemas, aclaración de dudas y evaluación con rúbricas. Después: actividades de refuerzo.",
+    "phases": [
+      {
+        "name": "Antes de la clase",
+        "description": "Videos con autoevaluación, infografías y diapositivas en Classroom."
+      },
+      {
+        "name": "Durante la clase",
+        "description": "Talleres grupales, dudas, retroalimentación, rúbricas."
+      },
+      {
+        "name": "Después de la clase",
+        "description": "Actividades asignadas y revisión del material en plataforma."
+      }
+    ],
+    "assessment": "Calificación sobre 100: autoevaluación con videos (40), evaluación formativa con rúbricas (35) y post-test (25)."
+  },
+  "tic_use": {
+    "tools": [
+      "Google Classroom",
+      "Edpuzzle",
+      "Screencast-O-Matic",
+      "PowerPoint",
+      "YouTube (videos descargados y editados)",
+      "Canva"
+    ],
+    "classroom_devices_observed": {
+      "note": "Porcentaje de las 28 sesiones observadas.",
+      "laptops_pct": 64.3,
+      "smartphones_pct": 42.9,
+      "projector_pct": 50.0,
+      "tablets_pct": 0,
+      "smart_tv_pct": 0,
+      "pc_pct": 0
+    },
+    "pedagogical_evaluation": "La TIC cumple un rol estructural: sin plataforma y videos el modelo no existe. Las herramientas son gratuitas y de baja complejidad, lo que favorece la replicabilidad. El riesgo es de equidad: el modelo presupone acceso doméstico al material, y cerca del 15 % del grupo experimental no alcanzó la mitad del visionado.",
+    "confidence": "certain"
+  },
+  "innovative_contributions": {
+    "claimed": "Los autores afirman que no existen antecedentes de este tipo de estudio en su país y que el aula invertida es una innovación pedagógica para el profesorado local.",
+    "evaluation": "La novedad es contextual más que conceptual: el aula invertida está ampliamente estudiada. El aporte propio es combinarla con ADDIE y usar la analítica de Edpuzzle como evidencia de proceso junto con un grupo de control.",
+    "confidence": "likely"
+  },
+  "traditional_vs_transformative": {
+    "traditional": "Exposición del docente en el aula y tarea individual en casa.",
+    "transformative": "Estudio previo mediado por video con autoevaluación y aula dedicada a resolver problemas en colaboración."
+  },
+  "critical_analysis": {
+    "strengths": [
+      "Único caso de la galería con grupo de control y medición pre y post.",
+      "Equivalencia inicial entre grupos verificada (sin diferencia significativa en el pre-test).",
+      "Combina rendimiento, observación de aula y analítica de plataforma."
+    ],
+    "limits": [
+      "Exclusión asimétrica: se retiraron 10 estudiantes del grupo experimental por baja participación en plataforma y 9 del grupo de control por no completar el post-test.",
+      "Rendimiento bajo en términos absolutos: 9,12 sobre 25 en el post-test experimental frente a 7,22 en el control; la nota final acumulada del grupo experimental (60,74) no alcanzó el mínimo de aprobación de 70.",
+      "Implementación parcial: se observaron en promedio 18,5 de 33 elementos esperados y en ninguna de las 28 observaciones se vieron los 33.",
+      "La prueba de normalidad dio p = 0,045, que a su propio nivel de 0,05 rechaza la normalidad, y el texto concluye lo contrario. Se justifica la prueba t afirmando que los datos son aleatorios en un diseño no aleatorio.",
+      "No se contrasta formalmente la diferencia de ganancias entre grupos (1,86 frente a 0,63) ni se reporta tamaño del efecto.",
+      "Mismo instrumento como pre y post-test; fiabilidad alfa de 0,708 (aceptable en el límite).",
+      "El lenguaje causal del artículo excede lo que permite un diseño cuasiexperimental con grupos intactos y sin control del efecto docente.",
+      "La equidad de acceso al material doméstico no se discute como problema pedagógico."
+    ]
+  },
+  "evidence": {
+    "sample_funnel": {
+      "initial": 134,
+      "final": 115,
+      "experimental_final": 57,
+      "control_final": 58,
+      "excluded_experimental_low_participation": 10,
+      "excluded_control_missing_posttest": 9
+    },
+    "posttest_out_of_25": {
+      "experimental_pre": 7.26,
+      "experimental_post": 9.12,
+      "control_pre": 6.59,
+      "control_post": 7.22,
+      "difference_post_means": 1.899,
+      "ci95": [
+        0.857,
+        2.94
+      ],
+      "p_value": "< 0,001"
+    },
+    "effect_size_note": "El artículo no reporta tamaño del efecto. Cálculo propio a partir de la tabla: d aproximado de 0,67 (verificar antes de citar).",
+    "observation_fidelity": {
+      "mean_elements_observed": 18.53,
+      "expected_elements": 33,
+      "observations": 28
+    },
+    "videos": [
+      {
+        "n": 1,
+        "title": "Expresión algebraica y término algebraico",
+        "duration": "7:51",
+        "mean_selfcheck_score_100": 88.71
+      },
+      {
+        "n": 2,
+        "title": "Lenguaje algebraico",
+        "duration": "4:36",
+        "mean_selfcheck_score_100": 67.84
+      },
+      {
+        "n": 3,
+        "title": "Grado absoluto y relativo",
+        "duration": "7:46",
+        "mean_selfcheck_score_100": 44.23
+      },
+      {
+        "n": 4,
+        "title": "Tipos de polinomios",
+        "duration": "2:37",
+        "mean_selfcheck_score_100": 59.13
+      },
+      {
+        "n": 5,
+        "title": "Polinomios especiales",
+        "duration": "3:02",
+        "mean_selfcheck_score_100": 47.58
+      },
+      {
+        "n": 6,
+        "title": "Suma de polinomios",
+        "duration": "2:45",
+        "mean_selfcheck_score_100": 91.67
+      },
+      {
+        "n": 7,
+        "title": "Resta de polinomios",
+        "duration": "2:24",
+        "mean_selfcheck_score_100": 77.27
+      },
+      {
+        "n": 8,
+        "title": "Producto de polinomios",
+        "duration": "2:32",
+        "mean_selfcheck_score_100": 72.41
+      },
+      {
+        "n": 9,
+        "title": "División de polinomios",
+        "duration": "3:23",
+        "mean_selfcheck_score_100": 57.14
+      },
+      {
+        "n": 10,
+        "title": "Cuadrado de una suma",
+        "duration": "1:20",
+        "mean_selfcheck_score_100": 55.15
+      },
+      {
+        "n": 11,
+        "title": "Cuadrado de una diferencia",
+        "duration": "2:28",
+        "mean_selfcheck_score_100": 53.33
+      },
+      {
+        "n": 12,
+        "title": "Cubo de la suma de dos cantidades",
+        "duration": "1:59",
+        "mean_selfcheck_score_100": 66.67
+      },
+      {
+        "n": 13,
+        "title": "Diferencia de cuadrados",
+        "duration": "2:15",
+        "mean_selfcheck_score_100": 48.44
+      },
+      {
+        "n": 14,
+        "title": "Factor común por agrupación",
+        "duration": "3:29",
+        "mean_selfcheck_score_100": 69.78
+      }
+    ],
+    "videos_below_50": [
+      3,
+      5,
+      13
+    ],
+    "video_viewing": {
+      "mean_pct_viewed": 79.67,
+      "min_pct": 51.65,
+      "approx_share_not_reaching_half": "cerca del 15 % del grupo inscrito"
+    },
+    "lockers": {
+      "note": "Un casillero por estudiante. Totales por grupo derivados de los datos del artículo (final + excluidos); verificar contra la tabla de muestra del artículo.",
+      "grid": {
+        "cols": 12,
+        "rows": 6,
+        "cell_w": 26,
+        "cell_h": 60,
+        "fill_order": "left-to-right, top-to-bottom",
+        "excluded_position": "al final de la fila (ilustrativa: el artículo no indica qué estudiantes)",
+        "door_w": 25,
+        "door_h": 59
+      },
+      "groups": [
+        {
+          "id": "exp",
+          "label": "Grupo experimental",
+          "total": 67,
+          "analyzed": 57,
+          "excluded": 10,
+          "excluded_reason": "baja participación en la plataforma",
+          "last_row_doors": 7,
+          "plaque_label": "Experimental",
+          "plaque_sub": "57 + 10 fuera"
+        },
+        {
+          "id": "ctl",
+          "label": "Grupo de control",
+          "total": 67,
+          "analyzed": 58,
+          "excluded": 9,
+          "excluded_reason": "no completó el post-test",
+          "last_row_doors": 7,
+          "plaque_label": "Control",
+          "plaque_sub": "58 + 9 fuera"
+        }
+      ],
+      "toggle_label": "¿Quién quedó fuera?",
+      "caption": "Cada casillero es un estudiante. Posición ilustrativa."
+    },
+    "board": {
+      "front": {
+        "title": "Aula tradicional",
+        "lines": [
+          "Exposición del docente en el aula y tarea individual en casa."
+        ]
+      },
+      "back": {
+        "title": "Aula invertida",
+        "lines": [
+          "Antes de la clase: Videos con autoevaluación, infografías y diapositivas en Classroom.",
+          "Durante la clase: Talleres grupales, dudas, retroalimentación, rúbricas.",
+          "Después de la clase: Actividades asignadas y revisión del material en plataforma."
+        ]
+      },
+      "flip_label": "Girar la pizarra"
+    }
+  },
+  "transfer": {
+    "prompt": "Escribe con tus palabras qué parte de esta experiencia podrías adaptar a tu práctica educativa y qué tendrías que cambiar para tu contexto.",
+    "user_text": null
+  },
+  "audio": {
+    "file": "audio/sala-2.mp3",
+    "script_draft": "Cada casillero de esta sala es un estudiante. Empezaron 134, pero solo 115 entran en el análisis: diez del grupo experimental quedaron fuera por usar poco la plataforma y nueve del grupo de control por no hacer el post-test. Giren la pizarra para comparar el aula tradicional con el aula invertida, y fíjense en quién desaparece de los números.",
+    "script_note": "Borrador generado con IA. Reescríbelo con tus palabras antes de grabar y publica la transcripción.",
+    "transcript_required": true
+  },
+  "visual": {
+    "wall_svg": "walls/wall-02-aula-invertida.svg",
+    "scene": "Dos bancos de casilleros (uno por grupo, un casillero por estudiante) con placas colgantes, y una pizarra giratoria que muestra el aula tradicional por un lado y el aula invertida por el otro. Panel de contenido y altavoz.",
+    "data_viz": "Interruptor «¿Quién quedó fuera?» que pone candado a 10 casilleros experimentales y 9 de control. El gráfico de los 14 videos va en la pestaña Lectura crítica de la tarjeta.",
+    "speaker_position": "top-right"
+  },
+  "verify": [
+    "Los autores del artículo de 2025 en Profesorado parecen reportar el mismo grupo (57 estudiantes y 2 docentes) desde la percepción: usar solo uno como experiencia independiente.",
+    "Confirmar el cálculo propio del tamaño del efecto antes de publicarlo.",
+    "Confirmar en el artículo que cada grupo empezó con 67 estudiantes (57 + 10 y 58 + 9), derivado por suma."
+  ]
+}

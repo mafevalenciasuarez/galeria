@@ -1,0 +1,212 @@
+{
+  "id": "exp-guardianes-cerros",
+  "order": 1,
+  "room": {
+    "title": "Sala 1 · Guardianes de los cerros",
+    "technology_role": "Telón de fondo: la TIC sostiene la logística, no la mediación didáctica",
+    "technology_role_tag": "backdrop"
+  },
+  "source": {
+    "apa": "Correa Zapata, C. M., Saavedra Sánchez, S. P., Valderrama Gómez, V., & Giraldo Macías, C. F. (2022). Guardianes de los cerros: Un proyecto con enfoque STEAM para favorecer la comprensión del concepto ecosistema. Bio-grafía. Escritos sobre la Biología y su Enseñanza, (Número extraordinario), 2267-2277. https://revistas.upn.edu.co/index.php/bio-grafia/article/view/18355",
+    "year": 2022,
+    "country": "Colombia",
+    "level": "Primaria (4.º grado)",
+    "document_type": "Memorias del XI Congreso Latinoamericano de Enseñanza de la Biología y la Educación Ambiental, publicadas en revista",
+    "access": "Abierto"
+  },
+  "context": {
+    "summary": "Colegio Calasanz (privado), comuna 12 de Medellín. Cuarto de primaria, siete semanas, desarrolladas en su mayoría en alternancia por la pandemia: sesiones sincrónicas por Teams con la mitad del grupo y presenciales con la otra mitad.",
+    "details": [
+      "Siete equipos, cada uno a cargo de un cerro tutelar de Medellín.",
+      "Pregunta orientadora: la importancia de ser guardián de los cerros de la ciudad.",
+      "Autoría: dos estudiantes de último semestre de licenciatura y dos docentes de cátedra de la Universidad de Antioquia."
+    ]
+  },
+  "pedagogical_approach": {
+    "summary": "Aprendizaje basado en proyectos integrado con enfoque STEAM, orientado a que el estudiante comprenda el concepto de ecosistema a partir de su propio territorio, en contraste con ejercicios de libro de texto descontextualizados.",
+    "frameworks": [
+      "Características esenciales del diseño de proyectos (Larmer et al., 2015)",
+      "Integración STEAM para primaria (Greca y Meneses)",
+      "Estudio de caso cualitativo descriptivo-interpretativo (Stake)"
+    ]
+  },
+  "active_methodology": {
+    "name": "Aprendizaje basado en proyectos (ABPy) con enfoque STEAM",
+    "summary": "Tres fases con productos que obligan al estudiante a construir y comunicar conocimiento, no a repetirlo.",
+    "phases": [
+      {
+        "name": "Lanzamiento",
+        "description": "Indagación de ideas previas mediante dibujos y preguntas; conformación de equipos; presentación de la pregunta orientadora."
+      },
+      {
+        "name": "Desarrollo",
+        "description": "Salida a la huerta escolar para identificar factores bióticos y abióticos, juego de escalera y cuento para relaciones intraespecíficas, plegables e infografías sobre servicios ecosistémicos; elaboración de cartografía, cuadrorama y carta al Gobernador de Antioquia."
+      },
+      {
+        "name": "Cierre",
+        "description": "Exposición del cuadrorama y la cartografía de cada cerro."
+      }
+    ],
+    "assessment": "Rúbrica y autoevaluación."
+  },
+  "tic_use": {
+    "tools": [
+      "Microsoft Teams (encuentros sincrónicos en alternancia)",
+      "ATLAS.ti 9.1.3 (solo para el análisis de los investigadores)"
+    ],
+    "materials_non_digital": [
+      "Plastilina",
+      "Lupa",
+      "Plegables, fichas e infografías impresas",
+      "Cartografía y cuadrorama"
+    ],
+    "pedagogical_evaluation": "Uso pedagógico limitado. Teams resuelve la logística de la alternancia; el aprendizaje descansa en materiales analógicos y en productos físicos. La tecnología es condición de acceso, no mediación didáctica. Reconocerlo es parte del análisis crítico: no toda experiencia innovadora es una innovación tecnológica.",
+    "confidence": "certain"
+  },
+  "innovative_contributions": {
+    "claimed": "Un proyecto STEAM que articula ciencias, matemáticas (proporcionalidad y escala), arte, ingeniería (fases de diseño para prototipar) y tecnología básica.",
+    "evaluation": "El aporte está en el producto con audiencia real (una carta al Gobernador) y en la representación física del territorio, no en la tecnología. Es una propuesta transformadora en el diseño didáctico, aunque su evidencia de aprendizaje es acotada.",
+    "confidence": "likely"
+  },
+  "traditional_vs_transformative": {
+    "traditional": "Memorizar definiciones de ecosistema y resolver ejercicios del texto sin vínculo con el entorno del estudiante.",
+    "transformative": "Investigar un cerro concreto de la propia ciudad, representarlo y argumentar su protección ante una autoridad."
+  },
+  "critical_analysis": {
+    "strengths": [
+      "Audiencia auténtica: la carta al Gobernador da sentido comunicativo al conocimiento.",
+      "Integración disciplinar real (escala y proporción, representación artística, prototipado).",
+      "Los autores reportan sus propios vacíos conceptuales con honestidad."
+    ],
+    "limits": [
+      "La evidencia de aprendizaje reportada se concentra en un producto (la carta) y las cartografías.",
+      "Se describe un cuestionario inicial y final, pero sus resultados no se presentan en el texto.",
+      "La mayoría de los estudiantes no relacionó los factores abióticos como esenciales y fue imprecisa al hablar de ellos.",
+      "Solo dos equipos mencionaron relaciones intra e interespecíficas, sin especificar tipos.",
+      "Es un caso único en un colegio privado: no permite generalizar.",
+      "No se indica el año de implementación.",
+      "El artículo presenta los siete cerros como tutelares de la ciudad de Medellín, pero Quitasol (grupo G4) está en el municipio de Bello, al norte del área urbana de Medellín; el texto no lo aclara."
+    ]
+  },
+  "evidence": {
+    "coding_frequencies_atlasti": {
+      "note": "Número de citas codificadas por categoría en ATLAS.ti, según la tabla 3 del artículo (total 64).",
+      "values": [
+        {
+          "category": "Acciones",
+          "count": 16
+        },
+        {
+          "category": "Factores bióticos",
+          "count": 16
+        },
+        {
+          "category": "Amenazas al ecosistema",
+          "count": 11
+        },
+        {
+          "category": "Servicios ecosistémicos",
+          "count": 9
+        },
+        {
+          "category": "Factores sociales, políticos, económicos",
+          "count": 4
+        },
+        {
+          "category": "Factores abióticos",
+          "count": 3
+        },
+        {
+          "category": "Importancia de los cerros",
+          "count": 3
+        },
+        {
+          "category": "Relaciones inter/intraespecíficas",
+          "count": 2
+        }
+      ]
+    },
+    "cerros": [
+      "Pan de Azúcar",
+      "Asomadera",
+      "Nutibara",
+      "Quitasol",
+      "Volador",
+      "Picacho",
+      "Tres Cruces"
+    ],
+    "threats_named_by_students": [
+      "Basuras y botellas",
+      "Antenas",
+      "Incendios forestales",
+      "Deforestación",
+      "Caza ilegal"
+    ],
+    "cerros_by_group": [
+      {
+        "group": "G1",
+        "name": "Pan de Azúcar",
+        "map_zone_id": "pan-azucar",
+        "location_note": null
+      },
+      {
+        "group": "G2",
+        "name": "Asomadera",
+        "map_zone_id": "la-asomadera",
+        "location_note": null
+      },
+      {
+        "group": "G3",
+        "name": "Nutibara",
+        "map_zone_id": "nutibara",
+        "location_note": null
+      },
+      {
+        "group": "G4",
+        "name": "Quitasol",
+        "map_zone_id": "quitasol",
+        "location_note": "Cerro Quitasol está en el municipio de Bello, al norte de Medellín. En el mapa aparece como círculo de ubicación aproximada, fuera del límite municipal; se llega deslizando el mapa hacia el norte."
+      },
+      {
+        "group": "G5",
+        "name": "Volador",
+        "map_zone_id": "el-volador",
+        "location_note": null
+      },
+      {
+        "group": "G6",
+        "name": "Picacho",
+        "map_zone_id": "picacho",
+        "location_note": null
+      },
+      {
+        "group": "G7",
+        "name": "Tres Cruces",
+        "map_zone_id": "tres-cruces",
+        "location_note": null
+      }
+    ],
+    "cerros_table_source": "Tabla 2 del artículo (conformación de grupos por cerro seleccionado)."
+  },
+  "transfer": {
+    "prompt": "Escribe con tus palabras qué parte de esta experiencia podrías adaptar a tu práctica educativa y qué tendrías que cambiar para tu contexto.",
+    "user_text": null
+  },
+  "audio": {
+    "file": "audio/sala-1.mp3",
+    "script_draft": "Bienvenidos a la sala de los guardianes de los cerros. Aquí la tecnología casi no aparece, y eso también enseña algo: estudiantes de cuarto grado en Medellín construyeron mapas y cuadroramas de sus cerros y le escribieron al Gobernador. Fíjense en el muro de datos: casi nadie habló de los factores abióticos. La innovación está en el diseño didáctico, no en la pantalla.",
+    "script_note": "Borrador generado con IA. Reescríbelo con tus palabras antes de grabar y publica la transcripción.",
+    "transcript_required": true
+  },
+  "visual": {
+    "wall_svg": "walls/wall-01-cerros.svg",
+    "scene": "Mapa mural enmarcado de Medellín que se desliza hacia el norte (izquierda) para llegar a Quitasol, en Bello; al pasar el cursor cerca de un cerro aparece un marcador. Cartelera de corcho y panel de contenido.",
+    "data_viz": "Gráfico de barras de categorías en la tarjeta (bióticos frente a abióticos).",
+    "speaker_position": "top-right"
+  },
+  "verify": [
+    "Confirmar con el artículo en línea el formato de cita del número extraordinario.",
+    "No se indica el año de implementación en el texto.",
+    "El nivel de arbitraje de las memorias no está declarado en el texto leído."
+  ]
+}

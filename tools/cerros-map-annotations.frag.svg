@@ -1,0 +1,12 @@
+    <!-- Flecha de norte: el mapa está girado 90° y el norte queda a la izquierda; la N va en la punta. -->
+    <g id="north-arrow" transform="translate(372 105)">
+      <circle r="22" fill="#ffffff" fill-opacity="0.92" stroke="#6b6b6b" stroke-width="1.2"/>
+      <polygon points="-17,0 0,-7 0,7" fill="#3a3a3a"/>
+      <polygon points="17,0 0,-7 0,7" fill="#ffffff" stroke="#3a3a3a" stroke-width="1" stroke-linejoin="round"/>
+      <text x="-33" y="5" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-weight="700" fill="#3a3a3a">N</text>
+    </g>
+    <!-- Etiqueta del municipio vecino donde está Quitasol. -->
+    <g id="bello-label" font-family="Georgia, 'Times New Roman', serif" text-anchor="middle" fill="#8a8a8a">
+      <text x="150" y="135" font-size="28" letter-spacing="9">BELLO</text>
+      <text x="150" y="158" font-size="12" letter-spacing="2" id="bello-caption">municipio vecino</text>
+    </g>

@@ -1,0 +1,200 @@
+{
+  "aspect": "16:9",
+  "note": "Todos los marcos son 16:9 (igual que el viewBox 1600x900) para que el zoom sea predecible. Coordenadas en unidades del viewBox.",
+  "walls": {
+    "wall-00-vestibulo": [
+      {
+        "id": "focus-frame",
+        "x": 0,
+        "y": 0,
+        "w": 1600,
+        "h": 900,
+        "purpose": "Vista general de la pared (cámara inicial)"
+      },
+      {
+        "id": "focus-lintel",
+        "x": 352,
+        "y": 0,
+        "w": 800,
+        "h": 450,
+        "purpose": "Título sobre el dintel y parte superior de la puerta"
+      },
+      {
+        "id": "focus-directory",
+        "x": 0,
+        "y": 199,
+        "w": 640,
+        "h": 360,
+        "purpose": "Directorio de salas (menú alternativo)"
+      },
+      {
+        "id": "focus-bulletin",
+        "x": 960,
+        "y": 198,
+        "w": 640,
+        "h": 360,
+        "purpose": "Cartelera: cómo recorrer la galería"
+      },
+      {
+        "id": "focus-speaker",
+        "x": 1109,
+        "y": 0,
+        "w": 480,
+        "h": 270,
+        "purpose": "Altavoz de bienvenida"
+      },
+      {
+        "id": "focus-door",
+        "x": 200,
+        "y": 178,
+        "w": 1200,
+        "h": 675,
+        "purpose": "Aproximación a la puerta (primer paso del dolly)"
+      },
+      {
+        "id": "focus-door-pass",
+        "x": 620,
+        "y": 429,
+        "w": 360,
+        "h": 202.5,
+        "purpose": "Destino final del dolly: cruzar la puerta"
+      }
+    ],
+    "wall-01-cerros": [
+      {
+        "id": "focus-frame",
+        "x": 0,
+        "y": 0,
+        "w": 1600,
+        "h": 900,
+        "purpose": "Vista general de la pared"
+      },
+      {
+        "id": "focus-map",
+        "x": 0,
+        "y": 87,
+        "w": 840,
+        "h": 472.5,
+        "purpose": "Mapa mural enmarcado (zoom 1,9x)"
+      },
+      {
+        "id": "focus-board",
+        "x": 590,
+        "y": 188,
+        "w": 640,
+        "h": 360,
+        "purpose": "Cartelera de corcho"
+      },
+      {
+        "id": "focus-letter",
+        "x": 819,
+        "y": 254.5,
+        "w": 360,
+        "h": 202.5,
+        "purpose": "Carta al Gobernador (letter-note)"
+      },
+      {
+        "id": "focus-content",
+        "x": 1080,
+        "y": 224,
+        "w": 520,
+        "h": 292.5,
+        "purpose": "Panel de contenido: la tarjeta HTML se ancla aquí"
+      },
+      {
+        "id": "focus-speaker",
+        "x": 1109,
+        "y": 0,
+        "w": 480,
+        "h": 270,
+        "purpose": "Altavoz de la sala"
+      }
+    ],
+    "cerros-map": {
+      "group": "map-views",
+      "rects": [
+        {
+          "id": "view-medellin",
+          "x": 316.84,
+          "y": 0,
+          "w": 701.14,
+          "h": 559.7,
+          "purpose": "Vista inicial: Medellín completo"
+        },
+        {
+          "id": "view-norte",
+          "x": 0,
+          "y": 0,
+          "w": 701.14,
+          "h": 559.7,
+          "purpose": "Extremo norte (izquierda): Quitasol y Bello"
+        },
+        {
+          "id": "view-quitasol",
+          "x": 0,
+          "y": 52.8,
+          "w": 420.68,
+          "h": 335.82,
+          "purpose": "Acercamiento al cerro Quitasol (zoom 1,67x)"
+        }
+      ],
+      "annotations": "cerros-map-annotations.frag.svg"
+    },
+    "wall-02-aula-invertida": {
+      "group": "focus-frames",
+      "annotations": "wall-02-extras.frag.svg",
+      "annotations_group": "wall-extras",
+      "rects": [
+        {
+          "id": "focus-frame",
+          "x": 0,
+          "y": 0,
+          "w": 1600,
+          "h": 900,
+          "purpose": "Vista general de la pared"
+        },
+        {
+          "id": "focus-plaques",
+          "x": 48,
+          "y": 0,
+          "w": 640,
+          "h": 360,
+          "purpose": "Placas colgantes de los dos grupos"
+        },
+        {
+          "id": "focus-lockers",
+          "x": 0,
+          "y": 425,
+          "w": 760,
+          "h": 427.5,
+          "purpose": "Los dos bancos de casilleros"
+        },
+        {
+          "id": "focus-board",
+          "x": 605,
+          "y": 190.5,
+          "w": 640,
+          "h": 360,
+          "purpose": "Pizarra giratoria"
+        },
+        {
+          "id": "focus-content",
+          "x": 1080,
+          "y": 224,
+          "w": 520,
+          "h": 292.5,
+          "purpose": "Panel de contenido"
+        },
+        {
+          "id": "focus-speaker",
+          "x": 1109,
+          "y": 0,
+          "w": 480,
+          "h": 270,
+          "purpose": "Altavoz de la sala"
+        }
+      ]
+    }
+  },
+  "note_map_views": "Los view-* son rectángulos en coordenadas del mapa y deben tener la proporción de map-slot (520 x 415,1 = 1,2527), no 16:9."
+}

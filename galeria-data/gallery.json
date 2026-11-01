@@ -1,0 +1,522 @@
+{
+  "schema_version": "1.0",
+  "meta": {
+    "title": "Galería de innovaciones didácticas",
+    "subtitle": "Cuatro experiencias reales de didáctica y TIC leídas con ojo crítico",
+    "course": "Especialización en Didáctica & TIC",
+    "activity": "Actividad 2",
+    "team": [
+      "TODO_NOMBRE_1",
+      "TODO_NOMBRE_2",
+      "TODO_NOMBRE_3",
+      "TODO_NOMBRE_4"
+    ],
+    "language": "es",
+    "curatorial_thesis": "En estas cuatro experiencias la tecnología pasa de telón de fondo a infraestructura, recurso y objeto de aprendizaje. El valor pedagógico depende del diseño didáctico y de quién queda fuera, no del dispositivo.",
+    "thesis_note": "Tesis curatorial propuesta. Adóptala solo si la sostienes con tus propias lecturas."
+  },
+  "language_note": "Los textos están en español. Las claves del JSON están en inglés para que el código sea más simple.",
+  "route": {
+    "note": "Orden de salas por centralidad creciente de la tecnología. Las esquinas, puertas y ventanas son tramos de paso.",
+    "segments": [
+      {
+        "id": "seg-1",
+        "type": "straight",
+        "walls": [
+          "wall-00-vestibulo",
+          "wall-01-cerros",
+          "wall-02-aula-invertida"
+        ],
+        "pass_by": [
+          "door",
+          "window"
+        ]
+      },
+      {
+        "id": "corner-1",
+        "type": "corner_90",
+        "direction": "left",
+        "piece": "walls/corner-01.svg",
+        "pass_by": [
+          "stairwell"
+        ]
+      },
+      {
+        "id": "seg-2",
+        "type": "straight",
+        "walls": [
+          "wall-03-ra",
+          "wall-04-ia"
+        ],
+        "pass_by": [
+          "window",
+          "door"
+        ]
+      },
+      {
+        "id": "final",
+        "type": "door_through",
+        "walls": [
+          "wall-05-reflexion"
+        ]
+      }
+    ],
+    "transition_defaults": {
+      "dolly_s": 2.4,
+      "corner_s": 3.0,
+      "ease": "power2.inOut"
+    }
+  },
+  "rooms": [
+    {
+      "id": "exp-guardianes-cerros",
+      "order": 1,
+      "wall_svg": "walls/wall-01-cerros.svg",
+      "data": "exp-1-guardianes-cerros.json",
+      "frames": [
+        "focus-frame",
+        "focus-board",
+        "focus-letter",
+        "focus-content",
+        "focus-speaker",
+        "focus-map"
+      ],
+      "anchors": {
+        "speaker": "speaker",
+        "content": "content-slot"
+      },
+      "hotspots": [
+        {
+          "id": "letter-note",
+          "label": "Carta al Gobernador de Antioquia",
+          "type": "document",
+          "focus": "focus-letter"
+        }
+      ],
+      "map": {
+        "map_svg": "maps/cerros-map.svg",
+        "pin_svg": "maps/cerro-map-marker.svg",
+        "slot_id": "map-slot",
+        "frame_id": "map-frame",
+        "hover_radius_map_units": 25,
+        "pin": {
+          "width_map_units": 16,
+          "anchor": "tip_bottom_center",
+          "target": "top_center_of_zone_bbox"
+        },
+        "zones": [
+          {
+            "zone_id": "pan-azucar",
+            "group": "G1",
+            "label": "Pan de Azúcar",
+            "interactive": true
+          },
+          {
+            "zone_id": "la-asomadera",
+            "group": "G2",
+            "label": "Asomadera",
+            "interactive": true
+          },
+          {
+            "zone_id": "nutibara",
+            "group": "G3",
+            "label": "Nutibara",
+            "interactive": true
+          },
+          {
+            "zone_id": "quitasol",
+            "group": "G4",
+            "label": "Quitasol (Bello)",
+            "interactive": true,
+            "shape": "circle",
+            "note": "Ubicación aproximada, fuera del límite municipal de Medellín; visible al deslizar el mapa hacia el norte (izquierda).",
+            "reveal_view": "view-quitasol"
+          },
+          {
+            "zone_id": "el-volador",
+            "group": "G5",
+            "label": "Volador",
+            "interactive": true
+          },
+          {
+            "zone_id": "picacho",
+            "group": "G6",
+            "label": "Picacho",
+            "interactive": true
+          },
+          {
+            "zone_id": "tres-cruces",
+            "group": "G7",
+            "label": "Tres Cruces",
+            "interactive": true
+          },
+          {
+            "zone_id": "santo-domingo",
+            "group": null,
+            "label": "Santo Domingo (no estudiado en el artículo)",
+            "interactive": false,
+            "style": "dimmed"
+          }
+        ],
+        "orientation_note": "Confirmado por la autora: el norte está a la izquierda (el mapa está girado 90°). La flecha de norte (north-arrow) y la etiqueta Bello (bello-label) ya van incluidas en el mapa.",
+        "a11y": {
+          "zones_focusable": true,
+          "touch": "tap muestra el marcador y el nombre",
+          "fallback_list": "Contexto educativo (siete cerros por grupo)",
+          "focus_reveals_zone": "Si el foco llega a una zona fuera de la vista, el mapa se desliza para mostrarla."
+        },
+        "map_viewbox": [
+          0,
+          0,
+          1017.98,
+          559.7
+        ],
+        "views": {
+          "container_id": "map-views",
+          "initial": "view-medellin",
+          "ids": [
+            "view-medellin",
+            "view-norte",
+            "view-quitasol"
+          ],
+          "note": "Rectángulos en coordenadas del mapa con la proporción de map-slot (1,2527), no 16:9."
+        },
+        "pan": {
+          "axis": "x",
+          "min_x": 0,
+          "max_x": 316.84,
+          "methods": [
+            "drag",
+            "buttons",
+            "arrow_keys",
+            "focus_reveals_zone"
+          ],
+          "buttons": {
+            "left": "Norte · Bello",
+            "right": "Medellín"
+          },
+          "affordance": {
+            "edge_chevron_at_initial_view": true,
+            "first_visit_nudge_map_units": 40,
+            "nudge_respects_reduced_motion": true
+          },
+          "tween": {
+            "duration_s": 0.9,
+            "ease": "power2.inOut",
+            "mechanism": "tween a numeric proxy and rewrite the nested svg viewBox each tick"
+          },
+          "pin_screen_size": "constante: width_map_units * (viewWidth / 701.14)"
+        },
+        "north": "left",
+        "annotations": [
+          "north-arrow",
+          "bello-label",
+          "bello-caption"
+        ]
+      }
+    },
+    {
+      "id": "exp-aula-invertida-mate",
+      "order": 2,
+      "wall_svg": "walls/wall-02-aula-invertida.svg",
+      "data": "exp-2-aula-invertida.json",
+      "frames": [
+        "focus-frame",
+        "focus-plaques",
+        "focus-lockers",
+        "focus-board",
+        "focus-content",
+        "focus-speaker"
+      ],
+      "anchors": {
+        "speaker": "speaker",
+        "content": "content-slot"
+      },
+      "lockers": {
+        "svg_ids": {
+          "exp_slot": "bank-exp-slot",
+          "ctl_slot": "bank-ctl-slot",
+          "shells": [
+            "bank-exp",
+            "bank-ctl"
+          ],
+          "templates": [
+            "locker-door-exp",
+            "locker-door-ctl",
+            "padlock"
+          ],
+          "plaque_labels": {
+            "exp": "plaque-exp-label",
+            "ctl": "plaque-ctl-label"
+          },
+          "plaques": [
+            "plaque-exp",
+            "plaque-ctl"
+          ],
+          "container": "wall-extras"
+        },
+        "data": "evidence.lockers in exp-2-aula-invertida.json",
+        "stagger_s": 0.03,
+        "template_note": "Las puertas dibujadas (≈57x132) se escalan uniformemente (≈0,44) para caber en 25x59 y se centran en la celda 26x60; se lee su getBBox antes de ocultarlas. El candado ya está normalizado (10x13, origen 0,0). Cada grupo de puertas se añade dentro de #wall-extras, justo después de su carcasa."
+      },
+      "board": {
+        "svg_ids": {
+          "slot": "board-slot",
+          "art": "board-art",
+          "text_area": "board-text"
+        },
+        "data": "evidence.board in exp-2-aula-invertida.json",
+        "flip": {
+          "axis": "y",
+          "duration_s": 0.8,
+          "perspective_px": 900,
+          "reduced_motion": "crossfade"
+        },
+        "text_backdrop": {
+          "color": "#4b6653",
+          "opacity": 0.78,
+          "reason": "La mancha de tiza cubre casi toda la pizarra y resta legibilidad al texto."
+        }
+      },
+      "hotspots": [
+        {
+          "id": "speaker",
+          "label": "Altavoz de la sala",
+          "type": "audio"
+        },
+        {
+          "id": "board-slot",
+          "label": "Pizarra giratoria: aula tradicional frente a aula invertida",
+          "type": "flip"
+        },
+        {
+          "id": "toggle-excluded",
+          "label": "¿Quién quedó fuera?",
+          "type": "html-toggle"
+        }
+      ]
+    },
+    {
+      "id": "exp-realidad-aumentada",
+      "order": 3,
+      "wall_svg": "walls/wall-03-ra.svg",
+      "data": "exp-3-realidad-aumentada.json"
+    },
+    {
+      "id": "exp-ia-aprendizaje-automatico",
+      "order": 4,
+      "wall_svg": "walls/wall-04-ia.svg",
+      "data": "exp-4-ia-aprendizaje-automatico.json"
+    }
+  ],
+  "card_tabs": {
+    "note": "Cada tarjeta de sala usa las cinco pestañas que exige la actividad, en el mismo orden, y una sexta para la lectura crítica.",
+    "tabs": [
+      "Contexto educativo",
+      "Enfoque pedagógico",
+      "Metodología activa",
+      "Uso de TIC",
+      "Aportes innovadores",
+      "Lectura crítica"
+    ]
+  },
+  "intro": {
+    "wall_svg": "walls/wall-00-vestibulo.svg",
+    "lintel_title": "Galería de innovaciones didácticas",
+    "tagline": "Cuatro experiencias reales. Una pregunta: ¿qué cambia cuando entra la tecnología al aula y quién queda fuera?",
+    "directory_board": {
+      "title": "Directorio",
+      "entries": [
+        {
+          "label": "Sala 1 · Guardianes de los cerros",
+          "target": "exp-guardianes-cerros"
+        },
+        {
+          "label": "Sala 2 · Aula invertida",
+          "target": "exp-aula-invertida-mate"
+        },
+        {
+          "label": "Sala 3 · Realidad aumentada",
+          "target": "exp-realidad-aumentada"
+        },
+        {
+          "label": "Sala 4 · Entrenar una IA",
+          "target": "exp-ia-aprendizaje-automatico"
+        },
+        {
+          "label": "Aula de reflexión",
+          "target": "reflexion-final"
+        }
+      ]
+    },
+    "bulletin_board": {
+      "title": "Cómo recorrer la galería",
+      "items": [
+        "Haz clic en la puerta para entrar.",
+        "Cada sala tiene un altavoz: púlsalo para escuchar.",
+        "Usa el directorio para ir directamente a una sala."
+      ]
+    },
+    "cta": "Entrar a la galería",
+    "cta_secondary": "Ir al directorio sin animación",
+    "speaker": {
+      "welcome_audio": "audio/bienvenida.mp3",
+      "autoplay": false,
+      "script_draft": "Bienvenidos a nuestra galería de innovaciones didácticas. Recorrerán cuatro experiencias reales, cada una analizada desde su contexto, su enfoque y su uso de la tecnología. Les invitamos a mirar no solo lo que funcionó, sino lo que el estudio deja sin resolver.",
+      "script_note": "Borrador generado con IA. Reescríbelo con tus palabras."
+    },
+    "camera": {
+      "start_frame": "focus-frame",
+      "on_enter": [
+        "focus-door",
+        "focus-door-pass"
+      ],
+      "duration_s": 2.4,
+      "note": "Dolly en dos pasos hacia la puerta; las hojas pueden abrirse con transform-origin en las bisagras (borde exterior de cada hoja)."
+    },
+    "accessibility": {
+      "respect_prefers_reduced_motion": true,
+      "skip_animation_button": true
+    },
+    "frames": [
+      "focus-frame",
+      "focus-lintel",
+      "focus-directory",
+      "focus-bulletin",
+      "focus-speaker",
+      "focus-door",
+      "focus-door-pass"
+    ]
+  },
+  "final_room": {
+    "id": "reflexion-final",
+    "wall_svg": "walls/wall-05-reflexion.svg",
+    "title": "Aula de reflexión",
+    "cross_gallery_patterns": [
+      {
+        "pattern": "Se mide más la motivación y la satisfacción que el aprendizaje.",
+        "evidence": "Salas 3 y 4 se apoyan sobre todo en percepciones; la sala 2 usa notas pero con exclusiones asimétricas."
+      },
+      {
+        "pattern": "El acceso condiciona quién participa.",
+        "evidence": "Sala 3: de 33 estudiantes solo 10 tenían internet y 6 instalaron la aplicación. Sala 2: cerca del 15 % del grupo no alcanzó la mitad del visionado."
+      },
+      {
+        "pattern": "Diseños pequeños o sin control sostienen lenguaje causal.",
+        "evidence": "Salas 2, 3 y 4 usan verbos como demuestra o causa; solo la sala 2 tiene grupo de control."
+      },
+      {
+        "pattern": "La ética de la tecnología se declara más de lo que se trabaja.",
+        "evidence": "Sala 4 sostiene que la alfabetización en IA incluye sesgos y ética, y no los mide."
+      },
+      {
+        "pattern": "La fidelidad de implementación es parcial.",
+        "evidence": "Sala 2: 18,5 de 33 elementos observados en promedio."
+      }
+    ],
+    "pattern_note": "Patrones propuestos como punto de partida. Verifícalos y reescríbelos con tus palabras.",
+    "metacognitive_reflection": {
+      "prompt": "Qué aprendimos sobre cómo analizar una innovación, qué cambiaría nuestra mirada de docentes y qué transferiríamos a nuestra práctica.",
+      "user_text": null
+    },
+    "iag_declaration": {
+      "required_by_rubric": true,
+      "user_text": null,
+      "template_prompt": "Lista cada herramienta de IA usada, para qué (extracción de campos, sugerencia de estructura, código del motor 3D, borradores de guion), qué parte revisaste y reescribiste tú, y cómo verificaste los datos contra las fuentes."
+    },
+    "references_apa7": [
+      "exp-guardianes-cerros",
+      "exp-aula-invertida-mate",
+      "exp-realidad-aumentada",
+      "exp-ia-aprendizaje-automatico"
+    ],
+    "references_note": "Las referencias salen del campo source.apa de cada experiencia. Resolver los avisos de verify antes de publicar."
+  },
+  "svg_conventions": {
+    "viewBox": "0 0 1600 900",
+    "style": "Elevación frontal plana, sin perspectiva dentro del SVG. La perspectiva la aporta el CSS 3D.",
+    "required_ids": [
+      "focus-frame",
+      "focus-content",
+      "content-slot",
+      "speaker"
+    ],
+    "optional_ids": [
+      "door-*",
+      "window-*",
+      "hotspot-*"
+    ],
+    "speaker": {
+      "x": 1290,
+      "y": 60,
+      "w": 118,
+      "h": 112,
+      "note": "Medido sobre wall-00-vestibulo.svg (incluye la sombra). Misma posición en todas las paredes."
+    },
+    "text_policy": "El contenido de las experiencias va en HTML sobre content-slot, no dentro del SVG. Solo rótulos decorativos.",
+    "export_warning": "Desactiva la minificación de ids al exportar (por ejemplo cleanupIds en SVGO), o el motor no encontrará los marcos.",
+    "theme_tokens": {
+      "wall": "#EADFC8",
+      "wainscot": "#2F6B4F",
+      "trim": "#C9B98F",
+      "floor": "#8C7B63",
+      "ink": "#2B2B2B",
+      "accent": "#E0A526"
+    },
+    "focus_frames": {
+      "rule": "Todos los marcos de cámara son 16:9, igual que el viewBox 1600x900.",
+      "container": "g#focus-frames con rects sin relleno ni trazo, inyectado por tools/inject-frames.mjs después de cada exportación.",
+      "naming": [
+        "focus-frame (vista general)",
+        "focus-<elemento> (primer plano)",
+        "focus-content (zoom al content-slot en salas)"
+      ]
+    }
+  },
+  "rubric_map": [
+    {
+      "criterion": "Investigar experiencias con fuentes confiables y actualizadas",
+      "where": "source en cada sala y referencias"
+    },
+    {
+      "criterion": "Análisis crítico del contexto, enfoque y fundamentos",
+      "where": "critical_analysis, context, pedagogical_approach"
+    },
+    {
+      "criterion": "Metodología activa y aprendizaje significativo",
+      "where": "active_methodology"
+    },
+    {
+      "criterion": "Evaluación del uso pedagógico de las TIC",
+      "where": "tic_use.pedagogical_evaluation"
+    },
+    {
+      "criterion": "Aportes innovadores y diferencia con prácticas tradicionales",
+      "where": "innovative_contributions, traditional_vs_transformative"
+    },
+    {
+      "criterion": "Galería clara, estética y funcional",
+      "where": "route, intro, card_tabs, navegación alternativa"
+    },
+    {
+      "criterion": "Alfabetización digital creativa y ética",
+      "where": "herramientas de curaduría y licencias de recursos propios"
+    },
+    {
+      "criterion": "Reflexión metacognitiva y transferencia",
+      "where": "final_room.metacognitive_reflection y transfer de cada sala"
+    },
+    {
+      "criterion": "Uso ético de la IAG",
+      "where": "final_room.iag_declaration"
+    },
+    {
+      "criterion": "APA v7",
+      "where": "source.apa y final_room.references_apa7"
+    },
+    {
+      "criterion": "Entrega en el plazo del cronograma",
+      "where": "fuera de la galería"
+    }
+  ]
+}

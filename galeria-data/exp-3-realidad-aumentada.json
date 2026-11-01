@@ -1,0 +1,131 @@
+{
+  "id": "exp-realidad-aumentada",
+  "order": 3,
+  "room": {
+    "title": "Sala 3 · Realidad aumentada en una clase virtual de primaria",
+    "technology_role": "Recurso: la TIC es el objeto de diseño que media el contenido",
+    "technology_role_tag": "resource"
+  },
+  "source": {
+    "apa": "Araya González, M. (2023). Realidad aumentada como recurso didáctico en una clase virtual de primaria. InterSedes, 24(50), 337-359. https://doi.org/10.15517/isucr.v24i50.54010",
+    "year": 2023,
+    "country": "Costa Rica",
+    "level": "Primaria (4.º grado)",
+    "document_type": "Artículo científico (InterSedes, Universidad de Costa Rica)",
+    "access": "Abierto",
+    "doi_alternatives": [
+      "10.15517/isucr.v24i50.54010",
+      "10.15517/isucr.v24i50.51353"
+    ],
+    "doi_note": "El encabezado del PDF muestra un DOI terminado en 51353 y la línea Cómo citar uno terminado en 54010. Comprobar cuál resuelve antes de entregar la referencia."
+  },
+  "context": {
+    "summary": "Escuela Enrique Pinto Fernández, San Rafael de Alajuela. Cuarto grado, Estudios Sociales, tema Espacios democráticos de mi región. Prototipo en julio de 2020 y recurso final en agosto de 2020, durante la pandemia.",
+    "details": [
+      "33 estudiantes matriculados en la sección; solo 10 tenían acceso a internet y el resto trabajaba con guías autónomas del MEP.",
+      "De los 10 invitados, 6 lograron instalar la aplicación.",
+      "Baja motivación estudiantil y escasez de herramientas tecnológicas identificadas por entrevistas y encuestas."
+    ]
+  },
+  "pedagogical_approach": {
+    "summary": "Aprendizaje móvil y ubicuo con diseño participativo: los estudiantes colorearon las imágenes y grabaron narraciones, de modo que el recurso se construyó con ellos. El marco motivacional es el de expectativa, valor y afecto.",
+    "frameworks": [
+      "Componentes motivacionales (Pintrich y De Groot, 1990)",
+      "Aprendizaje móvil (Ramos et al., 2010)",
+      "Investigación basada en diseño (de Benito y Salinas, 2016)"
+    ]
+  },
+  "active_methodology": {
+    "name": "Investigación basada en diseño con design thinking",
+    "summary": "Cuatro fases (análisis, diseño, implementación, evaluación). El componente activo es el diseño participativo; la secuencia de escenas de la aplicación es guiada y lineal, así que no conviene presentarla como aprendizaje abierto.",
+    "phases": [
+      {
+        "name": "Análisis",
+        "description": "Cuestionarios a docentes y estudiantes, entrevista y lluvia de ideas."
+      },
+      {
+        "name": "Diseño e implementación",
+        "description": "Prototipo en julio de 2020 sobre regiones socioeconómicas y aplicación final Espacios democráticos en mi región, con cuatro escenas."
+      },
+      {
+        "name": "Evaluación",
+        "description": "Cuestionario de percepción sobre usabilidad, motivación y participación."
+      }
+    ],
+    "assessment": "Percepción del estudiantado con escala Likert y preguntas abiertas."
+  },
+  "tic_use": {
+    "tools": [
+      "TigerCreate (autoría de realidad aumentada)",
+      "Aplicación Android sin conexión a internet",
+      "Código QR hacia Google Forms",
+      "Microsoft Teams y WhatsApp (clases virtuales y capacitación de la docente)"
+    ],
+    "scenes": [
+      "Mapa de Costa Rica coloreado a mano: tocar la provincia propia",
+      "Provincia en 3D alrededor de una hoja marcador, con explicación docente",
+      "Distritos del cantón: encontrar el propio",
+      "Foto aérea de la comunidad: localizar los espacios democráticos"
+    ],
+    "pedagogical_evaluation": "La TIC es el eje del diseño. Hay intención didáctica clara (contexto cercano, narración propia, funcionamiento sin conexión), pero la interacción es de tocar y avanzar, y la comprensión se verifica con un formulario abierto revisado por la docente.",
+    "confidence": "likely"
+  },
+  "innovative_contributions": {
+    "claimed": "Primer recurso de realidad aumentada para primaria en Costa Rica, según el artículo.",
+    "evaluation": "El texto se contradice: el resumen afirma que no se reportan iniciativas locales, pero el estado de la cuestión cita un proyecto de realidad aumentada sobre el pueblo boruca. Los aportes sólidos son el diseño sin conexión para una población con poca conectividad y el material producido por los propios estudiantes.",
+    "confidence": "certain"
+  },
+  "traditional_vs_transformative": {
+    "traditional": "Mapas impresos y exposición sobre las instituciones de la comunidad.",
+    "transformative": "Mapa propio coloreado por los niños que se activa en el teléfono con audios, vistas 3D y búsqueda guiada de los espacios democráticos del lugar donde viven."
+  },
+  "critical_analysis": {
+    "strengths": [
+      "Diseño pensado para la restricción real: funciona sin internet y con versiones antiguas de Android.",
+      "Participación del estudiantado en la producción del material.",
+      "Los autores reconocen sus límites con claridad."
+    ],
+    "limits": [
+      "Muestra mínima: 10 invitados y 6 instalaciones logradas; sin grupo de control.",
+      "Solo mide percepción (motivación, interactividad), no aprendizaje.",
+      "Las barreras de instalación afectaron a 4 de 10: la desigualdad de acceso es el hallazgo más fuerte y queda en segundo plano.",
+      "Los porcentajes de la figura 5 (75 % y 25 %) no son compatibles con 6 ni con 10 participantes; el denominador no es claro.",
+      "Contradicción entre la afirmación de novedad y la bibliografía citada.",
+      "Inconsistencia en los DOI del encabezado y de la línea Cómo citar."
+    ]
+  },
+  "evidence": {
+    "access_funnel": {
+      "enrolled_in_section": 33,
+      "with_internet": 10,
+      "installed_app": 6
+    },
+    "perception": {
+      "motivated_to_participate_agree_pct": 100,
+      "more_interactive_agree_pct": 100,
+      "reused_twice_pct": 50,
+      "reused_three_times_pct": 33,
+      "denominator_note": "El denominador de los porcentajes no está claro (6 o 10 participantes)."
+    }
+  },
+  "transfer": {
+    "prompt": "Escribe con tus palabras qué parte de esta experiencia podrías adaptar a tu práctica educativa y qué tendrías que cambiar para tu contexto.",
+    "user_text": null
+  },
+  "audio": {
+    "file": "audio/sala-3.mp3",
+    "script_draft": "Esta sala muestra una aplicación de realidad aumentada hecha para niños de cuarto grado en Costa Rica que casi no tenían internet. Lo valioso es el diseño: funciona sin conexión y usa dibujos y voces de los propios estudiantes. Pero de treinta y tres niños, solo seis pudieron instalarla. Ese número cuenta tanto como los resultados positivos.",
+    "script_note": "Borrador generado con IA. Reescríbelo con tus palabras antes de grabar y publica la transcripción.",
+    "transcript_required": true
+  },
+  "visual": {
+    "wall_svg": "walls/wall-03-ra.svg",
+    "scene": "Mapa de Costa Rica dibujado como con crayones, un teléfono apoyado sobre la hoja marcador y una puerta con código QR.",
+    "data_viz": "Embudo de acceso 33 → 10 → 6 como tres sillas de pupitre que se van vaciando.",
+    "speaker_position": "top-right"
+  },
+  "verify": [
+    "Resolver el DOI correcto (54010 o 51353).",
+    "Confirmar el denominador de los porcentajes de las figuras 4 y 5."
+  ]
+}

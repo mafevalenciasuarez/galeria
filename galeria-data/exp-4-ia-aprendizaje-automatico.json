@@ -1,0 +1,134 @@
+{
+  "id": "exp-ia-aprendizaje-automatico",
+  "order": 4,
+  "room": {
+    "title": "Sala 4 · Enseñar inteligencia artificial entrenándola",
+    "technology_role": "Objeto de aprendizaje: la TIC es a la vez herramienta y contenido",
+    "technology_role_tag": "subject"
+  },
+  "source": {
+    "apa": "Sáez López, J. M., Redondo Duarte, S., Neubauer Esteban, A., & Pena Garrido, M. (2026). Enseñanza de la inteligencia artificial mediante aprendizaje automático: Un enfoque de aprendizaje activo en aulas de educación primaria. IJERI: International Journal of Educational Research and Innovation, (25), 1-14. https://doi.org/10.46661/ijeri.13119",
+    "year": 2026,
+    "country": "España",
+    "level": "Primaria (5.º grado, 10 años)",
+    "document_type": "Artículo científico (IJERI, Universidad Pablo de Olavide)",
+    "access": "Abierto"
+  },
+  "context": {
+    "summary": "1 009 estudiantes de quinto grado, 19 aulas en 13 centros de la Comunidad de Madrid, cuatro sesiones. Financiado por un proyecto de generación de conocimiento del Ministerio de Ciencia, Innovación y Universidades de España.",
+    "details": [
+      "Diseño preexperimental con pre-test y post-test, sin grupo de control.",
+      "Consentimiento informado por escrito y referencia a la Declaración de Helsinki."
+    ]
+  },
+  "pedagogical_approach": {
+    "summary": "Construccionismo y aprendizaje haciendo, con la alfabetización en inteligencia artificial como meta. Los estudiantes no usan la IA como consumidores: la entrenan y observan cómo las decisiones del modelo emergen de los datos.",
+    "frameworks": [
+      "Construccionismo (Resnick, Solomon)",
+      "Alfabetización en IA (Long y Magerko, 2020; Ng et al., 2021)",
+      "Pensamiento computacional (Brennan y Resnick, 2012)"
+    ]
+  },
+  "active_methodology": {
+    "name": "Aprendizaje activo por creación de modelos de aprendizaje automático",
+    "summary": "Los estudiantes entrenan modelos de clasificación con sus propios datos y los integran en proyectos de programación por bloques. Ejemplos: una medusa que reacciona a expresiones faciales, un pato que imita la apertura de la boca, un clasificador de perros y gatos y una abeja que sigue la nariz.",
+    "phases": [],
+    "assessment": "Prueba de 10 preguntas sobre aprendizaje automático (pre y post) y escala de percepción de cuatro ítems (alfa de 0,72 y 0,63)."
+  },
+  "tic_use": {
+    "tools": [
+      "Teachable Machine (entrenamiento de modelos con cámara, imágenes o sonido)",
+      "RAISE (entorno de bloques basado en Scratch 3.0, MIT)"
+    ],
+    "pedagogical_evaluation": "Uso con intención didáctica fuerte: la herramienta de baja entrada y alto techo permite entender cómo se entrena un clasificador. Una limitación pedagógica: la evaluación mide comprensión técnica y satisfacción, no la capacidad de cuestionar sesgos, aunque el marco teórico del artículo insiste en que esa crítica forma parte de la alfabetización en IA.",
+    "confidence": "likely"
+  },
+  "innovative_contributions": {
+    "claimed": "Una intervención a gran escala (más de mil estudiantes) para introducir el aprendizaje automático en primaria mediante programación visual.",
+    "evaluation": "Aporte genuino por escala y por colocar al estudiante como creador de modelos. Su alcance crítico queda por debajo de su promesa teórica.",
+    "confidence": "likely"
+  },
+  "traditional_vs_transformative": {
+    "traditional": "Hablar de la inteligencia artificial como contenido o usarla como servicio ya terminado.",
+    "transformative": "Entrenar un modelo propio, ver sus errores y programar una respuesta con bloques."
+  },
+  "critical_analysis": {
+    "strengths": [
+      "Escala poco frecuente en estudios de primaria sobre IA.",
+      "Herramientas gratuitas y accesibles desde el navegador.",
+      "Compara a estudiantes con y sin experiencia previa en Scratch (mejores puntuaciones y mayor motivación en quienes ya programaban por bloques)."
+    ],
+    "limits": [
+      "Los valores impresos del resultado principal muestran un descenso: 6,24 en la primera medición y 5,54 en la segunda (t(1008) = −16,19, d = −0,51), pero los autores concluyen mejora. Probable inversión de etiquetas, no verificable desde el texto.",
+      "El objetivo de verificar un diseño basado en IA generativa no se cumple: se entrenan modelos de clasificación y el ítem sobre IA generativa no cambia (p = 0,151, efecto trivial).",
+      "Sin grupo de control, y la muestra se describe a la vez como representativa y no probabilística.",
+      "Fiabilidad baja en la segunda dimensión (alfa de 0,63).",
+      "Los resultados de mayor efecto son autoinformes de comprensión y disfrute, no medidas de aprendizaje.",
+      "El marco teórico exige reflexión ética y sobre sesgos, pero ninguna actividad ni medida del estudio los aborda.",
+      "Verbos como demuestra exceden lo que permite un diseño preexperimental."
+    ]
+  },
+  "evidence": {
+    "dimension_1_cmlt": {
+      "first_measure_mean": 6.24,
+      "first_measure_sd": 1.41,
+      "second_measure_mean": 5.54,
+      "second_measure_sd": 1.74,
+      "t": -16.19,
+      "df": 1008,
+      "cohens_d": -0.51,
+      "labels_note": "El texto llama pre-test a la primera y post-test a la segunda, pero concluye mejora. Posible error de etiquetado; no se puede confirmar."
+    },
+    "dimension_2_items": [
+      {
+        "item": "1.1 Entiendo cómo funcionan la IA y el aprendizaje automático",
+        "positive_pct": 81.8,
+        "r": 0.15,
+        "p": "< 0,001"
+      },
+      {
+        "item": "1.2 Entiendo la IA a través de actividades de aprendizaje automático",
+        "positive_pct": 97.8,
+        "r": 0.87,
+        "p": "< 0,001"
+      },
+      {
+        "item": "1.3 Disfruto creando modelos para entrenar",
+        "positive_pct": 94.6,
+        "r": 0.8,
+        "p": "< 0,001"
+      },
+      {
+        "item": "1.4 Me resulta útil trabajar con IA generativa",
+        "positive_pct": 80.8,
+        "r": 0.08,
+        "p": "0,151"
+      }
+    ],
+    "scratch_experience_item_1_3": {
+      "with_scratch_mean": 3.58,
+      "without_scratch_mean": 3.21,
+      "r": 0.41
+    }
+  },
+  "transfer": {
+    "prompt": "Escribe con tus palabras qué parte de esta experiencia podrías adaptar a tu práctica educativa y qué tendrías que cambiar para tu contexto.",
+    "user_text": null
+  },
+  "audio": {
+    "file": "audio/sala-4.mp3",
+    "script_draft": "Aquí la tecnología es a la vez la herramienta y lo que se aprende: niños de diez años entrenan su propio modelo de inteligencia artificial con la cámara y lo programan con bloques. Más de mil estudiantes participaron. Pero fíjense en dos detalles: el resultado principal impreso muestra una bajada, no una mejora, y el estudio habla de ética de la IA sin medirla.",
+    "script_note": "Borrador generado con IA. Reescríbelo con tus palabras antes de grabar y publica la transcripción.",
+    "transcript_required": true
+  },
+  "visual": {
+    "wall_svg": "walls/wall-04-ia.svg",
+    "scene": "Pared de aula de informática con un monitor que muestra una cara y cuatro barras de clase (alegre, miedo, enojo, asco) y una medusa de Scratch en un recuadro tipo acuario.",
+    "data_viz": "Dos barras de pre y post impresas tal como aparecen en el artículo, con una nota al lado que advierte la posible inversión de etiquetas.",
+    "speaker_position": "top-right"
+  },
+  "verify": [
+    "Revisar con el artículo si el orden pre y post de la dimensión 1 es una inversión de etiquetas.",
+    "La atribución de Teachable Machine a Carney et al. y a Chen (2020) aparece duplicada en la bibliografía del artículo."
+  ]
+}

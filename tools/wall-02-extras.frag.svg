@@ -1,0 +1,33 @@
+    <!-- Casilleros: carcasas y áreas de puertas (las puertas las coloca el motor: 12 columnas x 6 filas, celda 26x60). -->
+    <g id="bank-exp">
+      <rect x="44.1" y="832" width="318" height="6" fill="#4b342c" opacity="0.28"/>
+      <rect x="41.1" y="454" width="324" height="380" fill="#ad833e" stroke="#241b18" stroke-width="1.6"/>
+      <rect x="41.1" y="454" width="324" height="6" fill="#f8bc59" stroke="#241b18" stroke-width="1.2"/>
+      <rect x="41.1" y="460" width="6" height="360" fill="#c79748"/>
+      <rect x="47.1" y="460" width="312" height="360" fill="#2f2522" stroke="#241b18" stroke-width="1"/>
+      <rect x="39.1" y="820" width="328" height="14" fill="#3d2e26" stroke="#241b18" stroke-width="1.4"/>
+      <rect x="39.1" y="820" width="328" height="3" fill="#6a5242"/>
+    </g>
+    <rect id="bank-exp-slot" x="47.1" y="460" width="312" height="360" fill="none"/>
+    <g id="bank-ctl">
+      <rect x="373.0" y="832" width="318" height="6" fill="#4b342c" opacity="0.28"/>
+      <rect x="370.0" y="454" width="324" height="380" fill="#657568" stroke="#241b18" stroke-width="1.6"/>
+      <rect x="370.0" y="454" width="324" height="6" fill="#91a996" stroke="#241b18" stroke-width="1.2"/>
+      <rect x="370.0" y="460" width="6" height="360" fill="#758778"/>
+      <rect x="376.0" y="460" width="312" height="360" fill="#2f2522" stroke="#241b18" stroke-width="1"/>
+      <rect x="368.0" y="820" width="328" height="14" fill="#3d2e26" stroke="#241b18" stroke-width="1.4"/>
+      <rect x="368.0" y="820" width="328" height="3" fill="#6a5242"/>
+    </g>
+    <rect id="bank-ctl-slot" x="376.0" y="460" width="312" height="360" fill="none"/>
+    <!-- Candado: plantilla de 10x13 con origen en (0,0). -->
+    <defs>
+      <g id="padlock">
+        <path d="M2.2 5.2V3.6a2.8 2.8 0 0 1 5.6 0v1.6" fill="none" stroke="#241b18" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="0.6" y="5" width="8.8" height="7.6" rx="1.3" fill="#f0c44a" stroke="#241b18" stroke-width="0.9"/>
+        <circle cx="5" cy="8.2" r="1.1" fill="#241b18"/>
+        <rect x="4.6" y="8.6" width="0.8" height="2.2" fill="#241b18"/>
+      </g>
+    </defs>
+    <!-- Pizarra: área total (marco, tiza y pomos) y área de texto sobre la pizarra verde. -->
+    <rect id="board-slot" x="711.8" y="242.7" width="426.9" height="255.7" fill="none"/>
+    <rect id="board-text" x="757" y="272" width="338" height="190" fill="none"/>

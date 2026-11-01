@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Galería de innovaciones didácticas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Classic script: must run even when ES modules are blocked (file://). -->
+  <script>
+    if (location.protocol === 'file:') {
+      document.documentElement.classList.add('is-file');
+      window.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('file-warning').hidden = false;
+      });
+    }
+  </script>
+
+  <div id="file-warning" role="alert" hidden>
+    <h1>Esta galería necesita un servidor local</h1>
+    <p>Abriste el archivo directamente (<code>file://</code>) y el navegador bloquea la carga de los datos y de las paredes.</p>
+    <p>En VS Code o Cursor instala la extensión <strong>Live Server</strong>, haz clic derecho en <code>index.html</code> y elige <strong>Open with Live Server</strong>.</p>
+  </div>
+
+  <main id="scene" aria-label="Galería en 3D">
+    <div id="world"></div>
+  </main>
+
+  <div id="fade" aria-hidden="true"></div>
+  <div id="tooltip" role="tooltip" hidden></div>
+
+  <div id="popup" role="dialog" aria-labelledby="popup-title" hidden>
+    <h2 id="popup-title"></h2>
+    <div class="popup-actions">
+      <button type="button" id="popup-action"></button>
+      <button type="button" id="popup-close">Cerrar</button>
+    </div>
+  </div>
+
+  <aside id="audio-panel" aria-label="Audio y guion" hidden>
+    <p id="audio-status" role="status"></p>
+    <button type="button" id="script-toggle" aria-expanded="false" aria-controls="script-box">Guion (borrador)</button>
+    <div id="script-box" hidden>
+      <p id="script-text"></p>
+      <p id="script-note"></p>
+    </div>
+  </aside>
+
+  <div id="card-backdrop" hidden>
+    <section id="card" role="dialog" aria-modal="true" aria-labelledby="card-title"></section>
+  </div>
+
+  <nav id="navbar" aria-label="Navegación de la galería">
+    <div class="nav-group">
+      <button type="button" id="btn-prev" class="nav-round" aria-label="Sala anterior" title="Sala anterior">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6 8 12l6.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="nav-group">
+      <button type="button" id="btn-sound" class="nav-round" aria-pressed="false" aria-label="Sonido de la sala: apagado" title="Sonido de la sala: apagado">
+        <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L11 6v12l-3.8-3.5H4v-5z" fill="currentColor"/><path d="M16 9.5 21 14.5M21 9.5 16 14.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L11 6v12l-3.8-3.5H4v-5z" fill="currentColor"/><path d="M15 9.2a3.6 3.6 0 0 1 0 5.6M17.2 7a6.4 6.4 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" id="btn-music" class="nav-round" aria-pressed="false" aria-label="Música de fondo: apagada" title="Música de fondo: apagada">
+        <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6.2L18 4v8.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.6" cy="17.5" r="2.3" fill="currentColor"/><circle cx="15.6" cy="14.6" r="2.3" fill="currentColor"/><path d="M5 20 19 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V6.2L18 4v8.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.6" cy="17.5" r="2.3" fill="currentColor"/><circle cx="15.6" cy="14.6" r="2.3" fill="currentColor"/></svg>
+      </button>
+      <button type="button" id="btn-noanim" class="nav-round" aria-pressed="false" aria-label="Sin animación: desactivado" title="Sin animación: desactivado">
+        <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5 9.5 12 5 16.5M12.5 7.5 17 12l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5 9.5 12 5 16.5M12.5 7.5 17 12l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19 19 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <label class="nav-field">
+        <span class="sr-only">Sala</span>
+        <select id="room-menu" aria-label="Ir a una sala"></select>
+      </label>
+      <button type="button" id="btn-next" class="nav-round" aria-label="Sala siguiente" title="Sala siguiente">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6 16 12l-6.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <label class="nav-field" id="debug-field" hidden>
+        <span>Marco</span>
+        <select id="debug-menu" aria-label="Visitar un marco de cámara"></select>
+      </label>
+    </div>
+  </nav>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script type="module" src="engine.js"></script>
+</body>
+</html>
