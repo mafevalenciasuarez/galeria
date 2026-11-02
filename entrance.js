@@ -1,13 +1,17 @@
 // Aula entrance (route segment door_enter): door leaf, classroom shell, desks and the dolly timeline.
 // Math ported from walls/aula-entrance-demo.html, generalised by the wall heading k (the camera moves
 // along -n, n = the door wall's normal). Everything here follows the camera through camera.addProp.
-import { hotspot } from './walls.js';
+import { hotspot, bboxBox, placeBox } from './walls.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const DESK_RATIO = 936.49 / 978.76; // height / width of assets/student-desk.svg
+const DESK_RATIO = 936.49 / 978.76; // height / width of props/student-desk.svg
+// gallery.json still names assets/student-desk.svg and walls/classroom-wall-tile.svg.
+// Both drawings live in props/. The JSON is left untouched.
+const DESK_SRC = 'props/student-desk.svg';
+const TILE_SRC = 'props/classroom-wall-tile.svg';
 
 // Provisional corridor wall (same drawing as the demo): transparent doorway made with an SVG mask,
 // honey door frame and a leaf group. Used only when the real wall SVG does not exist.
@@ -33,7 +37,7 @@ export async function resolveDoorWall(door) {
   return { url: URL.createObjectURL(blob), provisional: true };
 }
 
-export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUnits = 822, debug = false, onOpen }) {
+export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUnits = 822, signText = '', debug = false, onOpen }) {
   const door = camera.doors[0];
   if (!door || !cfg || !doorWall || !classWall) return null;
   const [doorId, classId] = door.between;
@@ -56,29 +60,24 @@ export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUni
 
   doorWall.el.style.background = 'transparent'; // the doorway shows the classroom: no wall colour behind it
 
-  // ---------- Door leaf: HTML clone of #door-leaf, hinged on its left edge ----------
+  // ---------- Door leaf: HTML clone of #door-leaf. viewBox is the leaf bbox; the hinge is the opening's left edge ----------
   const holder = document.createElement('div');
   holder.className = 'door-holder';
   holder.setAttribute('aria-hidden', 'true');
+  const leafBox = cfg.door_wall.leaf_bbox_units || [671.2, 239.1, 255.3, 582.9];
+  const clip = (cfg.door_wall.leaf_clone && cfg.door_wall.leaf_clone.clip_inset_units) || { top: 3.9, right: 4.5, bottom: 0, left: 3.8 };
   let leafEl = null;
   const leaf = doorWall.svg && doorWall.svg.querySelector('#' + (ids.leaf || 'door-leaf'));
   if (leaf) {
-    const bb = leaf.getBBox();
     const svgNS = 'http://www.w3.org/2000/svg';
     const s = document.createElementNS(svgNS, 'svg');
-    s.setAttribute('viewBox', `${bb.x} ${bb.y} ${bb.width} ${bb.height}`);
-    s.setAttribute('preserveAspectRatio', 'none');
+    s.setAttribute('viewBox', leafBox.join(' '));
     const clone = leaf.cloneNode(true);
-    clone.removeAttribute('transform'); // the viewBox already places it
     clone.removeAttribute('id');
     clone.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
     s.append(clone);
     leafEl = document.createElement('div');
     leafEl.className = 'door-leaf';
-    Object.assign(leafEl.style, {
-      left: (ox / 1600 * 100) + '%', top: (oy / 900 * 100) + '%',
-      width: (ow / 1600 * 100) + '%', height: (oh / 900 * 100) + '%',
-    });
     leafEl.append(s);
     holder.append(leafEl);
     leaf.style.display = 'none';
@@ -87,6 +86,16 @@ export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUni
   }
   world.append(holder);
   camera.addProp(holder, () => camera.layoutOf(doorId));
+
+  const signEl = doorWall.svg && doorWall.svg.querySelector('#' + (ids.sign_label || 'door-sign-label'));
+  const signBox = bboxBox(signEl);
+  if (signBox && signText) {
+    const label = document.createElement('div');
+    label.className = 'door-sign-label';
+    label.textContent = signText;
+    placeBox(label, signBox);
+    doorWall.overlay.append(label);
+  }
 
   // ---------- Classroom shell: two flat side walls ----------
   const sides = [0, 1].map(() => {
@@ -107,7 +116,7 @@ export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUni
       const el = document.createElement('div');
       el.className = 'desk';
       el.setAttribute('aria-hidden', 'true');
-      el.innerHTML = `<img src="${dk.asset}" alt="">`;
+      el.innerHTML = `<img src="${DESK_SRC}" alt="">`;
       el.style.display = 'none';
       el.style.opacity = '1';
       world.append(el);
@@ -125,31 +134,40 @@ export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUni
     const { wallPx: W, wallTop, dist } = camera.dims;
     const LD = camera.layout.get(doorId);
     if (!LD || !W) return;
-    const Lr = door.Lr;
+    const live = camera.doors[0] || door;
+    const Lr = live.Lr;
     const H = W * 9 / 16;
     const K = W / 1600;
     const floorY = wallTop + floorUnits * K;
-    const b = (n) => n * K;
+    const sideH = floorUnits * K;
+    const tileW = ((sw && sw.tile_width_units) || 1516.8) * K;
 
     Object.assign(holder.style, { width: W + 'px', height: H + 'px', top: wallTop + 'px' });
+    if (leafEl) {
+      const [lx, ly, lw, lh] = leafBox;
+      Object.assign(leafEl.style, {
+        left: (lx * K) + 'px', top: (ly * K) + 'px', width: (lw * K) + 'px', height: (lh * K) + 'px',
+        clipPath: `inset(${clip.top * K}px ${clip.right * K}px ${clip.bottom * K}px ${clip.left * K}px)`,
+        transformOrigin: `${clip.left * K}px 0px`,
+      });
+    }
 
-    // Side walls: left at the door wall's origin, right at the far wall's right edge; each Lr wide.
-    const left = { x: LD.O.x, z: LD.O.z, rot: -90 * LD.k + 90 };
-    const right = {
-      x: LD.O.x + LD.d.x * W - LD.n.x * Lr, z: LD.O.z + LD.d.z * W - LD.n.z * Lr, rot: -90 * LD.k - 90,
-    };
-    [left, right].forEach((s, i) => {
-      const el = sides[i].el;
-      el._tf = `translate3d(${s.x}px, 0, ${s.z}px) rotateY(${s.rot}deg)`;
-      el.style.top = wallTop + 'px';
-      el.style.width = Lr + 'px';
-      el.style.height = H + 'px';
-      el.style.backgroundColor = sw.top;
-      el.style.backgroundImage = `linear-gradient(to bottom, transparent 0 ${b(552)}px, ${sw.trim} ${b(552)}px ${b(573)}px, ${sw.wood} ${b(573)}px ${b(795)}px, ${sw.baseboard} ${b(795)}px ${b(822)}px, #8d6547 ${b(822)}px 100%),`
-        + `repeating-linear-gradient(90deg, ${sw.plank_line} 0 2px, transparent 2px ${b(sw.plank_spacing_units)}px)`;
-      el.style.backgroundSize = `100% 100%, 100% ${b(222)}px`;
-      el.style.backgroundPosition = `0 0, 0 ${b(573)}px`;
-      el.style.backgroundRepeat = 'no-repeat, repeat-x';
+    // Both side walls start on the far wall (local z = -Lr) and rotateY(-90). An origin on the
+    // near edge sits behind the camera once it has crossed the door, and some browsers drop the plane.
+    const base = camera.layoutOf(doorId);
+    const locals = [
+      `translate3d(0,0,${-Lr}px) rotateY(-90deg)`,
+      `translate3d(${W}px,0,${-Lr}px) rotateY(-90deg)`,
+    ];
+    sides.forEach((s, i) => {
+      s.el._tf = `${base} ${locals[i]}`;
+      s.el.style.top = wallTop + 'px';
+      s.el.style.width = Lr + 'px';
+      s.el.style.height = sideH + 'px';
+      s.el.style.backgroundImage = `url(${TILE_SRC})`;
+      s.el.style.backgroundSize = `${tileW}px ${H}px`;
+      s.el.style.backgroundRepeat = 'repeat-x';
+      s.el.style.backgroundPosition = 'left top';
     });
 
     // Desks stand on the floor, in rows receding along -n; x offsets are fractions of wallPx from the doorway centre.
@@ -259,7 +277,8 @@ export function initEntrance({ camera, world, cfg, doorWall, classWall, floorUni
     else if (wallId === doorId && state.t !== 0) { setState(0); camera.refresh(); }
   }
 
-  camera.onMeasure = layout;
+  const prevMeasure = camera.onMeasure;
+  camera.onMeasure = () => { if (prevMeasure) prevMeasure(); layout(); };
   layout();
   setLeaf(0);
 

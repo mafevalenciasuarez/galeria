@@ -3,17 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Demo: entrada al aula de reflexión (puerta + dos pupitres en paralaje)</title>
+<title>Demo: entrada al aula de reflexión (puerta, paredes laterales, pupitres en filas)</title>
 <style>
   html, body { margin: 0; height: 100%; background: #1b1512; overflow: hidden; font-family: system-ui, sans-serif; }
   #scene { position: fixed; inset: 0; overflow: hidden; perspective: 1100px; perspective-origin: 50% 50%; }
   #world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; will-change: transform; }
   .wall, .plane, .piece { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
   .wall { backface-visibility: hidden; contain: paint; }
-  .wall > svg, .piece > svg { display: block; width: 100%; height: 100%; }
+  .wall > svg { display: block; width: 100%; height: var(--wallH); }   /* la pared se recorta a la altura del suelo */
+  .piece > svg { display: block; width: 100%; height: 100%; }   /* solo el SVG propio, no los anidados */
   .plane.floor { background-color: #8d6547;
     background-image: repeating-linear-gradient(180deg, transparent 0 146px, rgba(60,40,28,.30) 146px 150px),
                       repeating-linear-gradient(90deg, transparent 0 296px, rgba(60,40,28,.18) 296px 300px); }
+  .panel { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; background-image: url(walls/wall-fill.svg); background-repeat: repeat-x; }
   .desk { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
   .desk img { display: block; width: 100%; height: 100%; }
   #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 12px; align-items: center; justify-content: center; padding: 10px; background: #2b2321; color: #f2e7cb; }
@@ -32,50 +34,60 @@
 <script type="module">
 import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
 // Entrada al aula: la cámara cruza el hueco de la puerta del pasillo (z = 0) y avanza hacia la pared del aula (z = -L).
-// Dos pupitres (imágenes) flanquean el camino cerca de la puerta: la perspectiva los lleva hacia los lados mientras la cámara pasa por el hueco.
-const P = 1100, DUR = 4200;
+//  - pared de la puerta: walls/wall-aula-door.svg (el hueco está recortado con una máscara; la hoja #door-leaf se clona y gira)
+//  - paredes laterales: mosaico walls/classroom-wall-tile.svg (el MISMO arte que la pared del fondo), como fondo repetido
+//  - pupitres: filas alineadas de <img>, con desenfoque por proximidad
+let P = 1100; const DUR = 4200;
 const WOOD_URL = makeWoodTexture({ plankPx: 32, seed: 7 });
 const world = document.getElementById('world');
-const DOOR = { x: 690, y: 250, w: 220, h: 572 };                      // hueco de la puerta, en unidades de 1600x900
-const CLASS = { cream: '#f1e6ca', trim: '#cca471', wood: '#c89150', plank: '#78532f', base: '#4b352c' };
+const OPEN = { x: 675, y: 243, w: 247, h: 579 };                     // hueco de la puerta (unidades de 1600x900)
+const LEAF = { x: 671.2, y: 239.1, w: 255.3, h: 582.9 };             // bbox de #door-leaf
+const TILE_W = 1516.8;                                               // ancho del mosaico lateral (24 tablillas de 63,2)
 let W, H, TOP, EY, K, FLOORY, vw, vh, desks = [], leaf, Dist, L, ZD;
-
-// pared del pasillo PROVISIONAL (la real sustituirá a esta): el hueco de la puerta queda transparente con una máscara
-const hallWall = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><mask id="doorhole"><rect width="1600" height="900" fill="#fff"/><rect x="${DOOR.x}" y="${DOOR.y}" width="${DOOR.w}" height="${DOOR.h}" fill="#000"/></mask></defs>
-<g mask="url(#doorhole)"><rect width="1600" height="553" fill="#f2e7cb"/><rect y="552" width="1600" height="21" fill="#cca471"/><rect y="573" width="1600" height="222" fill="#376648"/><rect y="795" width="1600" height="27" fill="#4b352c"/><rect y="822" width="1600" height="78" fill="#8d6547"/></g>
-<rect x="${DOOR.x - 8}" y="${DOOR.y - 8}" width="${DOOR.w + 16}" height="${DOOR.h + 10}" fill="none" stroke="#8a5a2b" stroke-width="16"/>
-<rect x="640" y="120" width="320" height="70" fill="#b98a5a" stroke="#241b18" stroke-width="3"/></svg>`;
-const leafArt = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${DOOR.w} ${DOOR.h}"><rect width="${DOOR.w}" height="${DOOR.h}" fill="#b98a5a" stroke="#241b18" stroke-width="4"/>
-<rect x="50" y="60" width="120" height="190" fill="#f2d37a" stroke="#241b18" stroke-width="4"/><circle cx="190" cy="330" r="9" fill="#d9a441" stroke="#241b18" stroke-width="3"/><rect x="20" y="300" width="160" height="230" fill="none" stroke="#8a5a2b" stroke-width="5"/></svg>`;
 
 async function build() {
   vw = innerWidth; vh = innerHeight - 52;
   W = Math.min(vw, vh * 16 / 9); H = W * 9 / 16; TOP = (vh - H) / 2; EY = TOP + H / 2; K = W / 1600; FLOORY = TOP + 822 * K;
+  P = W; document.getElementById('scene').style.perspective = P + 'px';   // geometría proporcional al ancho de pared
   const s = Math.min(vw / W, vh / H); Dist = P / s; L = 1.83 * Dist; ZD = -0.5 * Dist;
   world.innerHTML = ''; desks = [];
-  const mkWall = (html, tr) => { const el = document.createElement('div'); el.className = 'wall'; el.style.cssText = `width:${W}px;height:${H}px;top:${TOP}px;transform:${tr};`; el.innerHTML = html; world.appendChild(el); return el; };
-  // pared del aula (z = -L) y pared del pasillo (z = 0)
-  const aulaTxt = (await (await fetch('walls/wall-05-reflexion.svg')).text()).replace(/^[\s\S]*?(<svg)/, '$1');
-  mkWall(aulaTxt, `translate3d(0,0,${-L}px)`); mkWall(hallWall, 'none');
-  // paredes laterales del aula: franjas planas (crema, moldura, madera con tablillas, zócalo)
-  const side = (tr) => { const el = document.createElement('div'); el.className = 'plane'; const b = n => n * K;
-    el.style.cssText = `width:${L}px;height:${H}px;top:${TOP}px;transform:${tr};background-color:${CLASS.cream};` +
-      `background-image:linear-gradient(to bottom, transparent 0 ${b(552)}px, ${CLASS.trim} ${b(552)}px ${b(573)}px, ${CLASS.wood} ${b(573)}px ${b(795)}px, ${CLASS.base} ${b(795)}px ${b(822)}px, #8d6547 ${b(822)}px 100%),` +
-      `repeating-linear-gradient(90deg, ${CLASS.plank} 0 2px, transparent 2px ${b(63.2)}px);` +
-      `background-size:100% 100%, 100% ${b(222)}px;background-position:0 0, 0 ${b(573)}px;background-repeat:no-repeat, repeat-x;`;
+  const mkWall = (html, tr) => { const el = document.createElement('div'); el.className = 'wall'; el.style.setProperty('--wallH', H + 'px'); el.style.cssText += `width:${W}px;height:${822 * K}px;top:${TOP}px;transform:${tr};`; el.innerHTML = html; world.appendChild(el); return el; };
+  const strip = t => t.replace(/^[\s\S]*?(<svg)/, '$1');
+  // pared del aula (z = -L) y pared de la puerta (z = 0)
+  mkWall(strip(await (await fetch('walls/wall-05-reflexion.svg')).text()), `translate3d(0,0,${-L}px)`);
+  const door = mkWall(strip(await (await fetch('walls/wall-aula-door.svg')).text()), 'none');
+  // el pasillo continúa a ambos lados de la puerta: wall-fill (con su mismo dibujo) para que en ventanas anchas no se vea el fondo negro
+  const FT = 464.17 * K; [[-W, W], [W, W]].forEach(([x0, w]) => { const el = document.createElement('div'); el.className = 'panel';
+    el.style.cssText = `width:${w}px;height:${822 * K}px;top:${TOP}px;background-size:${FT}px ${H}px;transform:translate3d(${x0}px,0,0);`; world.appendChild(el); });
+  // paredes laterales con el arte de la pared del fondo (mosaico repetido, alineado con la esquina del fondo); terminan en el suelo (822 u) para no cruzarlo
+  const TW = TILE_W * K, sideH = 822 * K;
+  const side = (tr, pos) => { const el = document.createElement('div'); el.className = 'plane';
+    el.style.cssText = `width:${L}px;height:${sideH}px;top:${TOP}px;transform:${tr};background-image:url(walls/classroom-wall-tile.svg);background-size:${TW}px ${H}px;background-repeat:repeat-x;background-position:${pos} top;`; world.appendChild(el); };
+  // las dos paredes tienen su ORIGEN en el fondo del aula (z = -L): con el origen detrás de la cámara algunos navegadores descartan el plano.
+  // La izquierda se ve por su reverso (el arte es simétrico: tablillas verticales).
+  side(`translate3d(0,0,${-L}px) rotateY(-90deg)`, 'left');
+  side(`translate3d(${W}px,0,${-L}px) rotateY(-90deg)`, 'left');
+  // techo y suelo: piezas que NO cruzan ninguna pared (pasillo z >= 0 y aula -L <= z <= 0), en bloques pequeños con la textura alineada al mundo
+  const mod = (v, m) => ((v % m) + m) % m;
+  const block = (cls, y, x0, x1, z0, z1) => { const el = document.createElement('div'); el.className = 'plane ' + cls;
+    el.style.cssText = `width:${x1 - x0}px;height:${z1 - z0}px;transform:translate3d(${x0}px,${y}px,${z0}px) rotateX(90deg);`;
+    if (cls === 'ceiling') { Object.assign(el.style, woodCeilingStyle(WOOD_URL)); el.style.backgroundPosition = `${-mod(x0, 1024)}px ${-mod(z0, 1024)}px`; }
+    else { el.style.backgroundImage = 'linear-gradient(180deg, transparent 0 146px, rgba(60,40,28,.30) 146px 150px), linear-gradient(90deg, transparent 0 296px, rgba(60,40,28,.18) 296px 300px)';
+           el.style.backgroundSize = '100% 150px, 300px 100%'; el.style.backgroundRepeat = 'repeat-y, repeat-x'; el.style.backgroundPosition = `0 ${-mod(z0, 150)}px, ${-mod(x0, 300)}px 0`; }
     world.appendChild(el); };
-  side(`translate3d(0,0,0) rotateY(90deg)`); side(`translate3d(${W}px,0,${-L}px) rotateY(-90deg)`);
-  // techo y suelo en DOS piezas por superficie que NO cruzan ninguna pared (terminan en ellas): pasillo (z >= 0) y aula (-L <= z <= 0, entre las paredes laterales)
-  const pieces = [['hall', -0.5 * W, 1.5 * W, 0, 1.5 * Dist], ['room', 0, W, -L, 0]];
-  [['ceiling', TOP], ['floor', FLOORY]].forEach(([cls, y]) => pieces.forEach(([, xa, xb, za, zb]) => {
-    const el = document.createElement('div'); el.className = 'plane ' + cls;
-    el.style.cssText = `width:${xb - xa}px;height:${zb - za}px;transform:translate3d(${xa}px,${y}px,${za}px) rotateX(90deg);`;
-    if (cls === 'ceiling') Object.assign(el.style, woodCeilingStyle(WOOD_URL)); world.appendChild(el); }));
-  // hoja de la puerta: bisagra a la izquierda; abre hacia el aula (rotateY positivo aleja el borde derecho)
-  leaf = document.createElement('div'); leaf.className = 'piece'; leaf.innerHTML = leafArt;
-  leaf.style.cssText = `left:${DOOR.x * K}px;top:${TOP + DOOR.y * K}px;width:${DOOR.w * K}px;height:${DOOR.h * K}px;`; world.appendChild(leaf);
-  // pupitres en filas alineadas (se ven por detrás, como desde el fondo del aula). Filas 0 y 1: la cámara pasa entre ellas al entrar (4 columnas);
-  // filas 2 a 5: quedan delante de la cámara final (3 columnas: se omite la columna interior izquierda para no tapar las mochilas).
+  const pieces = [[-0.5 * W, 1.5 * W, 0, 1.5 * Dist], [0, W, -L, 0]];
+  for (const [xa, xb, za, zb] of pieces) for (const cls of ['ceiling', 'floor']) { const C = cls === 'ceiling' ? 512 : 450;
+    for (let x0 = xa; x0 < xb; x0 += C) for (let z0 = za; z0 < zb; z0 += C) block(cls, cls === 'ceiling' ? TOP : FLOORY, x0, Math.min(x0 + C, xb), z0, Math.min(z0 + C, zb)); }
+  // hoja de la puerta: se clona de #door-leaf, se oculta el original y se recorta al hueco; bisagra en el borde izquierdo del hueco
+  const orig = door.querySelector('#door-leaf'); orig.setAttribute('display', 'none');
+  const clone = orig.cloneNode(true); clone.removeAttribute('display'); clone.removeAttribute('id');
+  leaf = document.createElement('div'); leaf.className = 'piece';
+  leaf.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${LEAF.x} ${LEAF.y} ${LEAF.w} ${LEAF.h}"></svg>`; leaf.firstChild.appendChild(clone);
+  const ci = { t: OPEN.y - LEAF.y, r: LEAF.x + LEAF.w - (OPEN.x + OPEN.w), l: OPEN.x - LEAF.x };
+  leaf.style.cssText = `left:${LEAF.x * K}px;top:${TOP + LEAF.y * K}px;width:${LEAF.w * K}px;height:${LEAF.h * K}px;` +
+    `clip-path:inset(${ci.t * K}px ${ci.r * K}px 0 ${ci.l * K}px);transform-origin:${ci.l * K}px 0;`;
+  world.appendChild(leaf);
+  // pupitres en filas alineadas, vistos por detrás. Filas 0 y 1: la cámara pasa entre ellas (4 columnas); filas 2 a 5: delante de la cámara final (3 columnas)
   const dw = 0.16 * W, dh = dw * 936.49 / 978.76, SP = 0.22 * Dist, ROWS = 6;
   for (let r = 0; r < ROWS; r++) {
     const cols = r < 2 ? [-0.34, -0.14, 0.14, 0.34] : [-0.34, 0.14, 0.34], zr = ZD - r * SP;
@@ -91,7 +103,6 @@ function setProgress(t) {
   const ez = Dist + (-L + Dist - Dist) * e, ex = W / 2;
   world.style.transform = `translate3d(${vw / 2}px,${vh / 2}px,${P}px) translate3d(${-ex}px,${-EY}px,${-ez}px)`;
   leaf.style.transform = `translate3d(0,0,1px) rotateY(${100 * open}deg)`;
-  // desenfoque por proximidad: Bs = píxeles de pantalla; el filtro se aplica antes de la perspectiva, así que se divide por la escala P/d
   for (const el of desks) { const d = ez - (+el.dataset.z); if (d < 25) { el.style.display = 'none'; continue; } el.style.display = '';
     const rest = 1 - 0.65 * smooth(0.85, 1, t);                      // en reposo el desenfoque baja al 35 %
     const css = 7 * (1 - smooth(300, 1100, d)) * rest * d / P;       // el filtro actúa antes de la perspectiva

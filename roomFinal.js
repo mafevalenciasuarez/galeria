@@ -2,7 +2,7 @@
 // opens the card. Every string comes from gallery.json or an exp-*.json file.
 // A null user_text stays null; the pending box is a separate marker, not a filled answer.
 import { el } from './ui.js';
-import { q, placeBox, hotspot } from './walls.js';
+import { q, bboxBox, placeBox, hotspot } from './walls.js';
 
 const VB = { w: 1600, h: 900 };
 
@@ -116,6 +116,9 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
         onActivate: () => activate(speaker ? { id: 'speaker' } : hs),
       });
     });
+    // The board hotspot covers every column. These buttons are appended after it,
+    // so each column keeps its own target and its own title.
+    wirePatternSlots();
   } else if (!wall.placeholder) {
     console.warn(`[final] ${wall.id} loaded but final_room.hotspots is missing`);
   }
@@ -160,11 +163,47 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
     }
   }
 
+  function wirePatternSlots() {
+    const spec = fr.pattern_slots;
+    const patterns = fr.cross_gallery_patterns || [];
+    if (!spec || !Array.isArray(spec.ids)) return;
+    spec.ids.forEach((slotId, i) => {
+      const item = patterns[i];
+      const title = item && item.pattern;
+      if (!title) {
+        console.warn(`[final] no pattern text for #${slotId}`);
+        return;
+      }
+      const open = () => show('patrones', 'pattern-' + (i + 1));
+      const slot = q(wall, '#' + slotId);
+      const box = slot && bboxBox(slot);
+      if (!box) {
+        console.warn(`[final] #${slotId} not found in ${wall.id}`);
+      } else {
+        const btn = make('button', 'pattern-slot', title);
+        btn.type = 'button';
+        btn.setAttribute('aria-label', title);
+        placeBox(btn, box);
+        btn.addEventListener('click', (e) => { e.preventDefault(); open(); });
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        });
+        wall.overlay.append(btn);
+      }
+      const iconId = spec.icons && spec.icons[i];
+      const icon = iconId && q(wall, '#' + iconId);
+      if (icon) hotspot(wall, icon, { label: title, cls: 'pattern-icon', onActivate: open });
+      else if (iconId) console.warn(`[final] #${iconId} not found in ${wall.id}`);
+    });
+  }
+
   function renderPatterns(container) {
-    (fr.cross_gallery_patterns || []).forEach((item) => {
+    (fr.cross_gallery_patterns || []).forEach((item, i) => {
       if (!item) return;
-      if (item.pattern) container.append(el('h3', {}, item.pattern));
-      if (item.evidence) container.append(el('p', {}, item.evidence));
+      const section = el('section', { 'data-room': 'pattern-' + (i + 1) });
+      if (item.pattern) section.append(el('h3', {}, item.pattern));
+      if (item.evidence) section.append(el('p', {}, item.evidence));
+      container.append(section);
     });
     if (!isBlank(fr.pattern_note)) {
       const note = el('p', { class: 'pattern-note' });

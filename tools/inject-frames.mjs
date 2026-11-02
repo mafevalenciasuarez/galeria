@@ -49,6 +49,12 @@ for (const file of fs.readdirSync(srcDir).filter(f => f.endsWith('.svg'))) {
   for (const hid of (Array.isArray(entry) ? [] : (entry.hide || []))) {
     svg = svg.replace(new RegExp(`(<\\w+\\b[^>]*?\\bid="${hid}")([^>]*>)`), (m, a, b) => b.includes('display=') ? m : `${a} display="none"${b}`);
   }
+  // atributos a añadir por id (por ejemplo mask="url(#...)" en los grupos de fondo)
+  for (const [aid, attrs] of Object.entries(Array.isArray(entry) ? {} : (entry.attrs || {}))) {
+    for (const [ak, av] of Object.entries(attrs)) {
+      svg = svg.replace(new RegExp(`(<\\w+\\b[^>]*?\\bid="${aid}")([^>]*>)`), (m, a, b) => b.includes(` ${ak}=`) ? m : `${a} ${ak}="${av}"${b}`);
+    }
+  }
   svg = svg.replace(/<\/svg>\s*$/, annGroup + group + '</svg>\n');
   fs.writeFileSync(path.join(outDir, file), svg);
   console.log(`OK ${name}: ${frames.length} marcos`);

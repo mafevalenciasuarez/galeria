@@ -59,6 +59,29 @@
         "margin_factor": 1.0,
         "note": "Techo y suelo: un rectángulo que cubre el recuadro (x, z) de todas las paredes ampliado en max(margin_factor * wallPx, min_margin_p_factor * P) por cada lado. Las paredes son opacas, así que lo que queda detrás de ellas no se ve. Solo gradientes de CSS y la textura de wood-ceiling.js.",
         "min_margin_p_factor": 1.3
+      },
+      "perspective": {
+        "rule": "perspective = wallPx en cada cambio de tamaño (la geometría es proporcional al ancho de pared)",
+        "fit": "Dist = perspective / s"
+      },
+      "hall_shell": {
+        "wall_fill_svg": "walls/wall-fill.svg",
+        "tile_width_units": 464.17,
+        "as": "css background-image, repeat-x, tile = 464.17 * wallPx / 1600 por alto de pared",
+        "hall_depth_factor": 1.4,
+        "rule": "Cada tramo recto es un rectángulo delante de sus paredes (largo del tramo por hall_depth_factor * Dist). En una esquina interior el rectángulo siguiente empieza a +Wd; en una exterior, a -Wd; se omite si queda dentro del anterior. Las paredes de relleno van en el CONTORNO de la unión: lados de cada rectángulo que no son pared real y cuyo exterior no cae dentro de otro pasillo.",
+        "floor_and_ceiling": {
+          "pieces": "unión de los rectángulos SIN solapes (resta secuencial)",
+          "blocks_px": {
+            "ceiling": 512,
+            "floor": 450
+          },
+          "textures": "alineadas a coordenadas del mundo con background-position",
+          "note": "Los bloques grandes (más de ~1000 px) se pierden a medias en algunas GPU."
+        },
+        "walls_end_at_floor_units": 822,
+        "back_panels": "cada pared real (menos la de la puerta) lleva un reverso de wall-fill",
+        "covers": "el rectángulo negro que se veía al fondo del pasillo durante el giro de cubo entre las salas 3 y 4"
       }
     },
     "segments": [
@@ -967,23 +990,37 @@
       "door_wall": {
         "id": "wall-aula-door",
         "svg": "walls/wall-aula-door.svg",
-        "status": "pendiente de dibujar",
+        "status": "dibujada",
         "ids": {
-          "opening": "door-opening",
           "leaf": "door-leaf",
-          "frame": "door-frame"
+          "frame": "door-frame",
+          "opening": "door-opening",
+          "sign": "door-sign",
+          "sign_label": "door-sign-label"
         },
         "opening_units": [
-          690,
-          250,
-          220,
-          572
+          675,
+          243,
+          247,
+          579
         ],
-        "rules": [
-          "El hueco de la puerta debe quedar TRANSPARENTE (sin relleno) para ver el aula detrás.",
-          "door-leaf es un grupo aparte con la hoja cerrada; la bisagra está en su borde izquierdo."
+        "leaf_bbox_units": [
+          671.2,
+          239.1,
+          255.3,
+          582.9
         ],
-        "fallback": "Si el SVG no existe, usar una pared de pasillo provisional con hueco y hoja como en aula-entrance-demo.html."
+        "hole": "máscara #door-hole-mask aplicada a bg-left y bg-right por tools/frames.json (attrs); la hoja y el marco quedan por encima",
+        "leaf_clone": {
+          "clip_inset_units": {
+            "top": 3.9,
+            "right": 4.5,
+            "bottom": 0,
+            "left": 3.8
+          },
+          "hinge": "borde izquierdo del hueco",
+          "open_deg": 100
+        }
       },
       "leaf": {
         "hinge": "left",
@@ -1005,14 +1042,14 @@
       "room": {
         "depth_factor": 1.83,
         "side_walls": {
-          "top": "#f1e6ca",
-          "trim": "#cca471",
-          "wood": "#c89150",
-          "plank_line": "#78532f",
-          "baseboard": "#4b352c",
-          "plank_spacing_units": 63.2
+          "tile_svg": "walls/classroom-wall-tile.svg",
+          "tile_width_units": 1516.8,
+          "plank_spacing_units": 63.2,
+          "height_units": 822,
+          "placement": "las dos paredes con el ORIGEN en la pared del fondo (z = -Lr), rotateY(-90deg), mosaico repetido con background-position left; la izquierda se ve por su reverso",
+          "note": "Sustituye a las paredes pintadas con gradientes de CSS: es el mismo arte que la pared del fondo."
         },
-        "planes": "ceiling y floor en piezas que terminan en las paredes (no las cruzan): una para el pasillo y otra entre las paredes laterales del aula"
+        "planes": "piezas que terminan en las paredes (no las cruzan): pasillo (z >= 0) y aula (-Lr <= z <= 0), en bloques pequeños y con la textura alineada al mundo"
       },
       "desks": {
         "asset": "assets/student-desk.svg",
@@ -1053,7 +1090,8 @@
           "reason": "Al acercarse a un elemento de la pared (focus-*) las filas delanteras taparían la vista: se desvanecen y vuelven en la vista general."
         }
       },
-      "effect_note": "Es un dolly con paralaje (los pupitres salen hacia los lados porque la cámara pasa entre ellos), no un dolly zoom de Vértigo."
+      "effect_note": "Es un dolly con paralaje (los pupitres salen hacia los lados porque la cámara pasa entre ellos), no un dolly zoom de Vértigo.",
+      "hall_sides": "wall-fill a cada lado de la pared de la puerta (el pasillo continúa)"
     },
     "pattern_slots": {
       "ids": [

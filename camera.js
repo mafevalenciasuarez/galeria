@@ -14,7 +14,6 @@ const DIRS = [{ x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }, { x: 0, z: -1 }];
 const dirOf = (k) => DIRS[((k % 4) + 4) % 4];
 
 export function createCamera({ scene, world, route = null, entrance = null, P: defaultP = 1200, debug = false }) {
-  const P = (route && route.world && route.world.perspective_px) || defaultP;
   const segments = (route && route.segments) || [];
   const cornerSeg = segments.find((s) => s.type === 'corner_90') || null;
 
@@ -23,15 +22,18 @@ export function createCamera({ scene, world, route = null, entrance = null, P: d
   const corners = []; // { id, type, between: [aId, bId], seg }
   const doors = []; // door_enter segments: { id, type, between: [doorWallId, classWallId], seg, Lr }
   const props = []; // extra 3D elements that follow the camera: { el, getTf, skip }
-  // Dist = P / s, with s the fit scale of a whole wall (focus-frame): how far the camera stands from a wall.
-  const dims = { vw: 0, vh: 0, wallPx: 0, wallTop: 0, dist: 0 };
+  // Dist = perspective / s. perspective is the wall width, reset on every resize (route-demo.html).
+  const dims = {
+    vw: 0, vh: 0, wallPx: 0, wallTop: 0, dist: 0,
+    persp: (route && route.world && route.world.perspective_px) || defaultP,
+  };
   // Camera pose: position in world px, yaw in degrees.
   const cam = { x: 0, y: 0, z: 0, yaw: 0 };
   let target = null;
   let tween = null;
 
   const api = {
-    P,
+    get P() { return dims.persp; },
     corner: cornerSeg,
     corners,
     doors,
@@ -47,7 +49,7 @@ export function createCamera({ scene, world, route = null, entrance = null, P: d
     get state() { return { x: cam.x, y: cam.y, z: cam.z, yaw: cam.yaw }; },
   };
 
-  scene.style.perspective = P + 'px';
+  scene.style.perspective = dims.persp + 'px';
 
   // The camera matrix is applied to each wall (and its fills) instead of to #world.
   // Chrome stops hit-testing the children of a preserve-3d ancestor that is rotated
@@ -102,15 +104,24 @@ export function createCamera({ scene, world, route = null, entrance = null, P: d
     dims.vw = scene.clientWidth;
     dims.vh = scene.clientHeight;
     dims.wallPx = Math.min(dims.vw, dims.vh * 16 / 9);
-    dims.wallTop = (dims.vh - dims.wallPx * 9 / 16) / 2;
-    dims.dist = P / Math.min(dims.vw / dims.wallPx, dims.vh / (dims.wallPx * 9 / 16));
+    const fullH = dims.wallPx * 9 / 16;
+    dims.wallTop = (dims.vh - fullH) / 2;
+    // perspective = wallPx, so the hallway scales with the wall instead of a fixed pixel distance.
+    if (dims.wallPx > 0) {
+      dims.persp = dims.wallPx;
+      scene.style.perspective = dims.persp + 'px';
+    }
+    dims.dist = dims.persp / Math.min(dims.vw / dims.wallPx, dims.vh / fullH);
     computeLayout();
-    const wh = dims.wallPx * 9 / 16;
+    const floorUnits = (route && route.world && route.world.hall_shell && route.world.hall_shell.walls_end_at_floor_units) || 822;
+    const visH = fullH * floorUnits / 900; // the wall ends at the floor; the svg stays full height and is clipped
+    const wh = visH;
     for (const w of walls.values()) {
       layoutTf.set(w.id, wallTransform(layout.get(w.id)));
+      w.el.style.setProperty('--wallH', fullH + 'px');
       Object.assign(w.el.style, {
         width: dims.wallPx + 'px',
-        height: wh + 'px',
+        height: visH + 'px',
         left: '0px',
         top: dims.wallTop + 'px',
       });
@@ -145,7 +156,7 @@ export function createCamera({ scene, world, route = null, entrance = null, P: d
   function planeBox() {
     const W = dims.wallPx;
     const cfg = (route && route.world && route.world.planes) || {};
-    const margin = Math.max((cfg.margin_factor || 0) * W, (cfg.min_margin_p_factor || 0) * P);
+    const margin = Math.max((cfg.margin_factor || 0) * W, (cfg.min_margin_p_factor || 0) * dims.persp);
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
     for (const L of layout.values()) {
       const ex = L.O.x + L.d.x * W;
@@ -331,13 +342,13 @@ export function createCamera({ scene, world, route = null, entrance = null, P: d
     const u = (f.x + f.w / 2) * k; // distance along the wall
     const y = wallTop + (f.y + f.h / 2) * k;
     // E = O + d*u + n*Dist, with Dist = P / s.
-    const dist = P / s;
+    const dist = dims.persp / s;
     return { x: L.O.x + L.d.x * u + L.n.x * dist, y, z: L.O.z + L.d.z * u + L.n.z * dist, yaw: 90 * L.k, s };
   }
 
   function apply() {
     // world transform = translate3d(vw/2, vh/2, P) rotateY(yaw) translate3d(-Ex, -Ey, -Ez), then the wall's own placement.
-    const camTf = `translate3d(${dims.vw / 2}px, ${dims.vh / 2}px, ${P}px) rotateY(${cam.yaw}deg) translate3d(${-cam.x}px, ${-cam.y}px, ${-cam.z}px)`;
+    const camTf = `translate3d(${dims.vw / 2}px, ${dims.vh / 2}px, ${dims.persp}px) rotateY(${cam.yaw}deg) translate3d(${-cam.x}px, ${-cam.y}px, ${-cam.z}px)`;
     for (const w of walls.values()) {
       const tf = `${camTf} ${layoutTf.get(w.id) || ''}`;
       w.el.style.transform = tf;
@@ -457,7 +468,7 @@ export function createCamera({ scene, world, route = null, entrance = null, P: d
         ez = C.z + r * Math.sin(phi);
       } else {
         const r = yaw * Math.PI / 180;
-        const pull = pb * P * Math.sin(Math.PI * e); // pull back mid-turn to see both walls
+        const pull = pb * dims.persp * Math.sin(Math.PI * e); // pull back mid-turn to see both walls
         ex = lerp(A.x, B.x, e) - pull * Math.sin(r);
         ez = lerp(A.z, B.z, e) + pull * Math.cos(r);
       }

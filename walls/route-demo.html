@@ -9,9 +9,11 @@
   #scene { position: fixed; inset: 0; overflow: hidden; perspective: 1100px; perspective-origin: 50% 50%; }
   #world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; will-change: transform; }
   .wall { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; contain: paint; }
-  .wall > svg { display: block; width: 100%; height: 100%; }
+  .wall > svg { display: block; width: 100%; height: var(--wallH); }   /* el SVG mide el alto completo; la pared se recorta a la altura del suelo */
   .wall.placeholder { background: #cfa873; display: grid; place-items: center; color: #4b342c; font: 700 3vw Georgia, serif; border: 6px dashed #4b342c; box-sizing: border-box; }
   .plane { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: visible; }
+  .panel { position: absolute; left: 0; top: 0; transform-origin: 0 0; backface-visibility: hidden; background-image: url(walls/wall-fill.svg); background-repeat: repeat-x; }
+  .room { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; transform-style: preserve-3d; }
   .plane.floor { background-color: #8d6547;
     background-image: repeating-linear-gradient(180deg, transparent 0 146px, rgba(60,40,28,.30) 146px 150px),
                       repeating-linear-gradient(90deg, transparent 0 296px, rgba(60,40,28,.18) 296px 300px); }
@@ -35,45 +37,100 @@ import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
 //  d = dirección de lectura de la pared; n = normal hacia el espectador = (-d.z, d.x); yaw de la cámara = 90*k.
 //  Pared:  transform = translate3d(O.x,0,O.z) rotateY(-90*k deg), origen (0 0).
 //  Cámara: E = O + d*u + n*Dist ;  mundo: translate3d(vw/2,vh/2,P) rotateY(yaw) translate3d(-Ex,-Ey,-Ez).
-const P = 1100, GLIDE = 1000;
+let P = 1100; const GLIDE = 1000;
 const WOOD_URL = makeWoodTexture({ plankPx: 32, seed: 7 });
 const gal = await (await fetch('galeria-data/gallery.json')).json();
 const world = document.getElementById('world');
 const DIRS = [{ x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }, { x: 0, z: -1 }];
 const dirOf = k => DIRS[((k % 4) + 4) % 4];
 let vw, vh, W, H, TOP, EY, stops = [], cur = 0, anim = null;
+const SHELL = new URLSearchParams(location.search).get('shell') !== '0';
 
 async function build() {
   vw = innerWidth; vh = innerHeight - 52; W = Math.min(vw, vh * 16 / 9); H = W * 9 / 16; TOP = (vh - H) / 2; EY = TOP + H / 2;
+  P = W; document.getElementById('scene').style.perspective = P + 'px';   // geometría proporcional al ancho de pared
   world.innerHTML = ''; stops = [];
-  let k = 0, O = { x: 0, z: 0 }; const placed = [];
+  let k = 0, O = { x: 0, z: 0 }; const placed = []; let pendingRoom = false;
   for (const seg of gal.route.segments) {
     if (seg.type === 'straight') {
       for (const id of seg.walls) {
         if (placed.includes(id)) continue; placed.push(id);
-        const d = dirOf(k); stops.push({ id, O: { ...O }, k, d, n: { x: -d.z, z: d.x } });
+        const d = dirOf(k); stops.push({ id, O: { ...O }, k, d, n: { x: -d.z, z: d.x }, room: pendingRoom }); pendingRoom = false;
         O = { x: O.x + d.x * W, z: O.z + d.z * W };
       }
+    } else if (seg.type === 'door_enter') {            // el aula queda DETRÁS de la pared de la puerta: mismo rumbo, desplazada -n * L
+      const last = stops[stops.length - 1]; last.door = true; const Lr = (seg.room_depth_factor || 1.9) * (P / Math.min(vw / W, vh / H));
+      O = { x: last.O.x - last.n.x * Lr, z: last.O.z - last.n.z * Lr }; pendingRoom = true; last.Lr = Lr;
     } else {                                           // esquina: O ya es el extremo de la última pared (= C)
       const C = { ...O }; stops[stops.length - 1].corner = { type: seg.type, C };
       k += seg.type === 'corner_90_outside' ? -1 : 1;
     }
   }
   for (const s of stops) {
-    const el = document.createElement('div'); el.className = 'wall'; el.style.cssText = `width:${W}px;height:${H}px;top:${TOP}px;`;
+    const el = document.createElement('div'); el.className = 'wall'; el.style.setProperty('--wallH', H + 'px'); el.style.cssText += `width:${W}px;height:${822 * (W / 1600)}px;top:${TOP}px;`;   // la pared termina en el suelo (822 u) para no cruzar el plano del suelo
     try { const r = await fetch(`walls/${s.id}.svg`); if (!r.ok) throw 0; el.innerHTML = (await r.text()).replace(/^[\s\S]*?(<svg)/, '$1'); }
     catch { el.className += ' placeholder'; el.textContent = s.id; }
     el.style.transform = `translate3d(${s.O.x}px,0,${s.O.z}px) rotateY(${-90 * s.k}deg)`; world.appendChild(el);
   }
-  // techo y suelo: recuadro de todas las paredes + margen
-  const pts = stops.flatMap(s => [s.O, { x: s.O.x + s.d.x * W, z: s.O.z + s.d.z * W }]), m = Math.max(1.0 * W, 1.3 * P);
-  const xa = Math.min(...pts.map(p => p.x)) - m, xb = Math.max(...pts.map(p => p.x)) + m, za = Math.min(...pts.map(p => p.z)) - m, zb = Math.max(...pts.map(p => p.z)) + m;
-  [['ceiling', TOP], ['floor', TOP + H * (822 / 900)]].forEach(([cls, y]) => {
-    const el = document.createElement('div'); el.className = 'plane ' + cls;
-    el.style.cssText = `width:${xb - xa}px;height:${zb - za}px;transform:translate3d(${xa}px,${y}px,${za}px) rotateX(90deg);`;
-    if (cls === 'ceiling') Object.assign(el.style, woodCeilingStyle(WOOD_URL));
-    world.appendChild(el);
-  });
+  // ---------- pasillos: cada tramo recto es un rectángulo delante de sus paredes ----------
+  const Wd = 1.4 * dist(), FY = TOP + 822 * (W / 1600), K = W / 1600, runs = []; let curRun = null;
+  for (const st of stops) { if (st.room) continue;
+    if (!curRun) { curRun = { k: st.k, d: st.d, n: st.n, S: { ...st.O }, count: 0, ends: null }; runs.push(curRun); }
+    curRun.count++; if (st.corner || st.door) { curRun.ends = st.corner ? st.corner.type : 'door'; curRun = null; } }
+  runs.forEach((r, i) => { r.len = r.count * W; const prev = runs[i - 1];
+    r.a = (prev && prev.ends && prev.ends !== 'door') ? Wd * (r.d.x * prev.n.x + r.d.z * prev.n.z) : 0;    // esquina interior: +Wd, exterior: -Wd
+    r.b = r.len; });
+  const pt = (r, along, depth) => ({ x: r.S.x + r.d.x * along + r.n.x * depth, z: r.S.z + r.d.z * along + r.n.z * depth });
+  const rects = [];
+  for (const r of runs) { if (r.a >= r.b) continue; const p0 = pt(r, r.a, 0), p1 = pt(r, r.b, Wd);
+    rects.push({ xa: Math.min(p0.x, p1.x), xb: Math.max(p0.x, p1.x), za: Math.min(p0.z, p1.z), zb: Math.max(p0.z, p1.z), n: r.n }); }
+  // suelo y techo: unión de los rectángulos SIN solapes (resta secuencial) y en bloques con la textura alineada al mundo
+  const sub = (p, o) => { const ix0 = Math.max(p.xa, o.xa), ix1 = Math.min(p.xb, o.xb), iz0 = Math.max(p.za, o.za), iz1 = Math.min(p.zb, o.zb);
+    if (ix0 >= ix1 || iz0 >= iz1) return [p]; const out = [];
+    if (p.za < iz0) out.push({ xa: p.xa, xb: p.xb, za: p.za, zb: iz0 }); if (iz1 < p.zb) out.push({ xa: p.xa, xb: p.xb, za: iz1, zb: p.zb });
+    if (p.xa < ix0) out.push({ xa: p.xa, xb: ix0, za: iz0, zb: iz1 }); if (ix1 < p.xb) out.push({ xa: ix1, xb: p.xb, za: iz0, zb: iz1 }); return out; };
+  const pieces = []; rects.forEach((R, i) => { let parts = [R]; for (let j = 0; j < i; j++) parts = parts.flatMap(q => sub(q, rects[j])); pieces.push(...parts); });
+  const mod = (v, m) => ((v % m) + m) % m, ceilStyle = (el, x0, z0) => { Object.assign(el.style, woodCeilingStyle(WOOD_URL)); el.style.backgroundPosition = `${-mod(x0, 1024)}px ${-mod(z0, 1024)}px`; };
+  const planeBlock = (cls, y, x0, x1, z0, z1) => { const el = document.createElement('div'); el.className = 'plane ' + cls;
+    el.style.cssText = `width:${x1 - x0}px;height:${z1 - z0}px;transform:translate3d(${x0}px,${y}px,${z0}px) rotateX(90deg);`;
+    if (cls === 'ceiling') ceilStyle(el, x0, z0);
+    else { el.style.backgroundImage = 'linear-gradient(180deg, transparent 0 146px, rgba(60,40,28,.30) 146px 150px), linear-gradient(90deg, transparent 0 296px, rgba(60,40,28,.18) 296px 300px)';
+           el.style.backgroundSize = '100% 150px, 300px 100%'; el.style.backgroundRepeat = 'repeat-y, repeat-x'; el.style.backgroundPosition = `0 ${-mod(z0, 150)}px, ${-mod(x0, 300)}px 0`; }
+    world.appendChild(el); };
+  for (const q of pieces) for (const cls of ['ceiling', 'floor']) { const C = cls === 'ceiling' ? 512 : 450;
+    for (let x0 = q.xa; x0 < q.xb; x0 += C) for (let z0 = q.za; z0 < q.zb; z0 += C) planeBlock(cls, cls === 'ceiling' ? TOP : FY, x0, Math.min(x0 + C, q.xb), z0, Math.min(z0 + C, q.zb)); }
+  // paredes de relleno (wall-fill) en el CONTORNO de la unión de pasillos: lados de cada rectángulo que no son pared real ni quedan dentro de otro pasillo
+  const tile = 464.17 * K;
+  const panel = (O, kk, len, hh) => { const C = 4 * tile, dd = DIRS[((kk % 4) + 4) % 4];
+    for (let a0 = 0; a0 < len; a0 += C) { const w = Math.min(C, len - a0);
+      const el = document.createElement('div'); el.className = 'panel';
+      el.style.cssText = `width:${w}px;height:${hh}px;top:${TOP}px;background-size:${tile}px ${H}px;transform:translate3d(${O.x + dd.x * a0}px,0,${O.z + dd.z * a0}px) rotateY(${-90 * kk}deg);`; world.appendChild(el); } };
+  // reverso de cada pared real (menos la de la puerta, que tiene hueco): la pared es opaca por los dos lados y no se ve a través de ella
+  if (SHELL) for (const st of stops) { if (st.room || st.door) continue; const kk = st.k + 2, dd = DIRS[((kk % 4) + 4) % 4];
+    panel({ x: st.O.x + st.d.x * W - st.n.x * 2, z: st.O.z + st.d.z * W - st.n.z * 2 }, kk, W, FY - TOP); }
+  const inRects = (x, z) => rects.some(r => x > r.xa && x < r.xb && z > r.za && z < r.zb);
+  // segmentos de las paredes reales (arte): donde ya hay pared no se pone relleno
+  const realWalls = stops.filter(st => !st.room).map(st => { const e = { x: st.O.x + st.d.x * W, z: st.O.z + st.d.z * W };
+    return st.d.z === 0 ? { o: 'H', c: st.O.z, u0: Math.min(st.O.x, e.x), u1: Math.max(st.O.x, e.x) } : { o: 'V', c: st.O.x, u0: Math.min(st.O.z, e.z), u1: Math.max(st.O.z, e.z) }; });
+  const onRealWall = (o, c, m) => realWalls.some(w => w.o === o && Math.abs(w.c - c) < 1 && m > w.u0 && m < w.u1);
+  if (SHELL) for (const R of rects) {
+    const sides = [{ o: 'H', c: R.za, u0: R.xa, u1: R.xb, nu: { x: 0, z: 1 } }, { o: 'H', c: R.zb, u0: R.xa, u1: R.xb, nu: { x: 0, z: -1 } },
+                   { o: 'V', c: R.xa, u0: R.za, u1: R.zb, nu: { x: 1, z: 0 } }, { o: 'V', c: R.xb, u0: R.za, u1: R.zb, nu: { x: -1, z: 0 } }];
+    for (const sd of sides) { if (sd.nu.x === R.n.x && sd.nu.z === R.n.z) continue;                  // el lado de la pared real no lleva relleno
+      const bps = [sd.u0, sd.u1]; for (const o of rects) for (const v of (sd.o === 'H' ? [o.xa, o.xb] : [o.za, o.zb])) if (v > sd.u0 && v < sd.u1) bps.push(v);
+      bps.sort((a, b) => a - b);
+      for (let i = 0; i < bps.length - 1; i++) { const u0 = bps[i], u1 = bps[i + 1]; if (u1 - u0 < 1) continue; const m = (u0 + u1) / 2;
+        const out = sd.o === 'H' ? inRects(m, sd.c - sd.nu.z) : inRects(sd.c - sd.nu.x, m); if (out || onRealWall(sd.o, sd.c, m)) continue;
+        const h = FY - TOP;
+        if (sd.o === 'H') { if (sd.nu.z === 1) panel({ x: u0, z: sd.c }, 0, u1 - u0, h); else panel({ x: u1, z: sd.c }, 2, u1 - u0, h); }
+        else { if (sd.nu.x === -1) panel({ x: sd.c, z: u0 }, 1, u1 - u0, h); else panel({ x: sd.c, z: u1 }, 3, u1 - u0, h); } } } }
+  // ---------- aula (detrás de la pared de la puerta): paredes laterales con el arte, suelo y techo en piezas que terminan en las paredes ----------
+  const door = stops.find(x => x.door), roomStop = stops.find(x => x.room);
+  if (door && roomStop) { const Lr = door.Lr, root = document.createElement('div'); root.className = 'room';
+    root.style.transform = `translate3d(${door.O.x}px,0,${door.O.z}px) rotateY(${-90 * door.k}deg)`; world.appendChild(root);
+    const side = (tr, pos) => { const el = document.createElement('div'); el.className = 'plane'; el.style.cssText = `width:${Lr}px;height:${822 * K}px;top:${TOP}px;transform:${tr};background-image:url(walls/classroom-wall-tile.svg);background-size:${1516.8 * K}px ${H}px;background-repeat:repeat-x;background-position:${pos} top;`; root.appendChild(el); };
+    side(`translate3d(0,0,${-Lr}px) rotateY(-90deg)`, 'left'); side(`translate3d(${W}px,0,${-Lr}px) rotateY(-90deg)`, 'left');   // origen al fondo en las dos
+    for (const [cls, y] of [['ceiling', TOP], ['floor', FY]]) { const el = document.createElement('div'); el.className = 'plane ' + cls; el.style.cssText = `width:${W}px;height:${Lr}px;transform:translate3d(0,${y}px,${-Lr}px) rotateX(90deg);`; if (cls === 'ceiling') Object.assign(el.style, woodCeilingStyle(WOOD_URL)); root.appendChild(el); } }
   const sel = document.getElementById('menu'); sel.innerHTML = stops.map((s, i) => `<option value="${i}">${i}: ${s.id}</option>`).join('');
   apply(poseAt(cur, 0));
 }
@@ -98,7 +155,7 @@ function apply(p) { world.style.transform = `translate3d(${vw / 2}px,${vh / 2}px
   document.getElementById('info').textContent = `Pared ${cur}: ${stops[cur]?.id ?? ''}`; document.getElementById('menu').value = cur; }
 function go(j) {
   if (j < 0 || j >= stops.length || j === cur || anim) return;
-  const fwd = j > cur, i0 = fwd ? cur : j, dur = stops[i0].corner ? (stops[i0].corner.type === 'corner_90_outside' ? 3200 : 2800) : GLIDE, t0 = performance.now();
+  const fwd = j > cur, i0 = fwd ? cur : j, dur = stops[i0].door ? 4200 : stops[i0].corner ? (stops[i0].corner.type === 'corner_90_outside' ? 3200 : 2800) : GLIDE, t0 = performance.now();
   if (Math.abs(j - cur) > 1 || matchMedia('(prefers-reduced-motion: reduce)').matches) { cur = j; apply(poseAt(j, 0)); return; }   // saltos largos: corte
   anim = true;
   const step = now => { const u = Math.min(1, (now - t0) / dur); apply(poseAt(i0, fwd ? u : 1 - u)); if (u < 1) requestAnimationFrame(step); else { cur = j; anim = null; apply(poseAt(cur, 0)); } };

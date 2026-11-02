@@ -383,6 +383,45 @@
           "purpose": "Altavoz de cierre"
         }
       ]
+    },
+    "wall-aula-door": {
+      "group": "focus-frames",
+      "annotations": "wall-aula-door-extras.frag.svg",
+      "annotations_group": "wall-extras",
+      "attrs": {
+        "bg-left": {
+          "mask": "url(#door-hole-mask)"
+        },
+        "bg-right": {
+          "mask": "url(#door-hole-mask)"
+        }
+      },
+      "rects": [
+        {
+          "id": "focus-frame",
+          "x": 0,
+          "y": 0,
+          "w": 1600,
+          "h": 900,
+          "purpose": "Vista general de la pared de la puerta"
+        },
+        {
+          "id": "focus-sign",
+          "x": 440,
+          "y": 60,
+          "w": 720,
+          "h": 405,
+          "purpose": "Cartel y parte superior de la puerta"
+        },
+        {
+          "id": "focus-door",
+          "x": 340,
+          "y": 170,
+          "w": 920,
+          "h": 517.5,
+          "purpose": "Puerta completa (zoom 1,7x)"
+        }
+      ]
     }
   },
   "note_map_views": "Los view-* son rectángulos en coordenadas del mapa y deben tener la proporción de map-slot (520 x 415,1 = 1,2527), no 16:9."

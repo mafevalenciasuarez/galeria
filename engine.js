@@ -10,6 +10,7 @@ import { initFinal, auditPublish } from './roomFinal.js';
 import { createProps } from './props.js';
 import { initEntrance, resolveDoorWall } from './entrance.js';
 import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
+import { createHallShell } from './hall.js';
 
 // One wood tile for the whole session. A failed canvas falls back to the flat grid.
 let woodTextureUrl = null;
@@ -213,16 +214,16 @@ async function main() {
   const worldCfg = (route && route.world) || {};
   const ceilingOn = !!(worldCfg.ceiling && worldCfg.ceiling.enabled);
   const floorOn = !!(worldCfg.floor && worldCfg.floor.enabled);
-  // The hall ends at the door wall when there is one; the classroom has its own side walls.
-  const lastFillIndex = hasDoor ? stops.findIndex((s) => s.kind === 'door') : walls.length - 1;
   walls.forEach((w, i) => {
     stops[i].wall = w;
-    // Fills go first so the wall paints over their 1px overlap.
-    buildFills(w, { first: i === 0, last: i === lastFillIndex, top: !ceilingOn, bottom: !floorOn }).forEach((f) => world.append(f.el));
+    // The hall shell draws the contour fills. These strips only cover a missing ceiling or floor.
+    buildFills(w, { first: false, last: false, top: !ceilingOn, bottom: !floorOn }).forEach((f) => world.append(f.el));
     world.append(w.el);
     camera.register(w);
   });
-  await mountPlanes(world, route, camera);
+  // Hall rectangles replace the old bounding box of every wall. Built on measure, before the entrance.
+  if (worldCfg.hall_shell && (ceilingOn || floorOn)) createHallShell({ camera, world, route });
+  else await mountPlanes(world, route, camera);
   camera.measure();
 
   // ---------- Aula entrance (door leaf, classroom shell, desks); the timeline lives in entrance.js ----------
@@ -233,6 +234,7 @@ async function main() {
       doorWall: stops.find((s) => s.kind === 'door').wall,
       classWall: stops.find((s) => s.kind === 'final').wall,
       floorUnits: (route.world && route.world.floor && route.world.floor.y_units) || 822,
+      signText: gallery.final_room.title,
       debug,
       onOpen: () => { const f = stops.find((s) => s.kind === 'final'); if (f) showStop(f.index); },
     });
