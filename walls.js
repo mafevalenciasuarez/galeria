@@ -290,8 +290,12 @@ export function setFillTemplate(svgText) {
   fillTemplate = svg;
 }
 
-export function buildFills(wall, { first, last }) {
-  const sides = ['top', 'bottom'];
+// top/bottom are false when a ceiling/floor plane hides that strip: an unseen strip still costs
+// GPU tile memory, and some browsers (Edge, Brave) then drop wall tiles mid-turn and flicker.
+export function buildFills(wall, { first, last, top = true, bottom = true }) {
+  const sides = [];
+  if (top) sides.push('top');
+  if (bottom) sides.push('bottom');
   if (first) sides.push('left');
   if (last) sides.push('right');
   wall.fills = sides.map((side) => {

@@ -320,6 +320,69 @@
           "purpose": "Altavoz de la sala"
         }
       ]
+    },
+    "wall-05-reflexion": {
+      "group": "focus-frames",
+      "annotations": "wall-05-extras.frag.svg",
+      "annotations_group": "wall-extras",
+      "rects": [
+        {
+          "id": "focus-frame",
+          "x": 0,
+          "y": 0,
+          "w": 1600,
+          "h": 900,
+          "purpose": "Vista general del aula"
+        },
+        {
+          "id": "focus-board",
+          "x": 0,
+          "y": 58,
+          "w": 900,
+          "h": 506.25,
+          "purpose": "Pizarra con los cinco patrones"
+        },
+        {
+          "id": "focus-backpacks",
+          "x": 12,
+          "y": 450,
+          "w": 800,
+          "h": 450,
+          "purpose": "Las cuatro mochilas (transferencia a la práctica)"
+        },
+        {
+          "id": "focus-clipboard",
+          "x": 744,
+          "y": 221,
+          "w": 480,
+          "h": 270,
+          "purpose": "Portapapeles: uso de IA"
+        },
+        {
+          "id": "focus-bookshelf",
+          "x": 675.6,
+          "y": 398.8,
+          "w": 640,
+          "h": 360,
+          "purpose": "Estante: referencias"
+        },
+        {
+          "id": "focus-content",
+          "x": 1080,
+          "y": 224,
+          "w": 520,
+          "h": 292.5,
+          "purpose": "Panel: reflexión metacognitiva"
+        },
+        {
+          "id": "focus-speaker",
+          "x": 1109,
+          "y": 0,
+          "w": 480,
+          "h": 270,
+          "purpose": "Altavoz de cierre"
+        }
+      ]
     }
   },
   "note_map_views": "Los view-* son rectángulos en coordenadas del mapa y deben tener la proporción de map-slot (520 x 415,1 = 1,2527), no 16:9."

@@ -111,6 +111,26 @@
         "type": "straight",
         "walls": [
           "wall-04-ai-training",
+          "wall-aula-door"
+        ]
+      },
+      {
+        "id": "door-1",
+        "type": "door_enter",
+        "between": [
+          "wall-aula-door",
+          "wall-05-reflexion"
+        ],
+        "duration_s": 4.2,
+        "reduced_motion": "cut",
+        "room_depth_factor": 1.9,
+        "demo": "aula-entrance-demo.html",
+        "note": "El aula está DETRÁS de la pared de la puerta (misma orientación): la cámara cruza el hueco de la puerta y avanza hacia la pared del aula."
+      },
+      {
+        "id": "seg-4",
+        "type": "straight",
+        "walls": [
           "wall-05-reflexion"
         ]
       }
@@ -119,7 +139,8 @@
       "dolly_s": 2.4,
       "corner_s": 2.8,
       "ease": "power2.inOut"
-    }
+    },
+    "planes_rule": "Un plano de techo o suelo nunca debe CRUZAR una pared: debe terminar en ella. Si cruza (por ejemplo, planos que siguen por detrás de las paredes laterales del aula) pueden aparecer zonas negras según la posición de la cámara."
   },
   "rooms": [
     {
@@ -941,7 +962,117 @@
       "script_draft": "Llegamos al final del recorrido. Ninguna de estas experiencias demuestra por sí sola que la tecnología mejora el aprendizaje: lo que muestran es que el diseño didáctico, y quién queda fuera, pesan más que el dispositivo. Les invitamos a leer cómo lo aplicaríamos en nuestra práctica.",
       "script_note": "Borrador generado con IA. Reescríbelo con tus palabras si decides conservar el altavoz."
     },
-    "reference_order": "alfabético por apellido del primer autor (APA 7)"
+    "reference_order": "alfabético por apellido del primer autor (APA 7)",
+    "entrance": {
+      "door_wall": {
+        "id": "wall-aula-door",
+        "svg": "walls/wall-aula-door.svg",
+        "status": "pendiente de dibujar",
+        "ids": {
+          "opening": "door-opening",
+          "leaf": "door-leaf",
+          "frame": "door-frame"
+        },
+        "opening_units": [
+          690,
+          250,
+          220,
+          572
+        ],
+        "rules": [
+          "El hueco de la puerta debe quedar TRANSPARENTE (sin relleno) para ver el aula detrás.",
+          "door-leaf es un grupo aparte con la hoja cerrada; la bisagra está en su borde izquierdo."
+        ],
+        "fallback": "Si el SVG no existe, usar una pared de pasillo provisional con hueco y hoja como en aula-entrance-demo.html."
+      },
+      "leaf": {
+        "hinge": "left",
+        "open_deg": 100,
+        "opens_toward": "classroom",
+        "timing": [
+          0,
+          0.3
+        ]
+      },
+      "camera": {
+        "dolly_timing": [
+          0.12,
+          1.0
+        ],
+        "ease": "easeInOutCubic",
+        "duration_s": 4.2
+      },
+      "room": {
+        "depth_factor": 1.83,
+        "side_walls": {
+          "top": "#f1e6ca",
+          "trim": "#cca471",
+          "wood": "#c89150",
+          "plank_line": "#78532f",
+          "baseboard": "#4b352c",
+          "plank_spacing_units": 63.2
+        },
+        "planes": "ceiling y floor en piezas que terminan en las paredes (no las cruzan): una para el pasillo y otra entre las paredes laterales del aula"
+      },
+      "desks": {
+        "asset": "assets/student-desk.svg",
+        "as": "img",
+        "pointer_events": "none",
+        "aria_hidden": true,
+        "width_factor": 0.16,
+        "first_row_z_factor": -0.5,
+        "row_spacing_factor": 0.22,
+        "rows": 6,
+        "columns_before_camera_end": [
+          -0.34,
+          -0.14,
+          0.14,
+          0.34
+        ],
+        "columns_ahead_of_camera": [
+          -0.34,
+          0.14,
+          0.34
+        ],
+        "rows_before_camera_end": 2,
+        "layout_note": "Las filas 0 y 1 flanquean el camino de entrada (4 columnas). Las filas 2 a 5 quedan delante de la cámara final (3 columnas: se omite la interior izquierda para no tapar las mochilas). La cámara final queda a mitad de camino entre dos filas (depth_factor 1,83).",
+        "blur": {
+          "max_screen_px": 7,
+          "near_d": 300,
+          "far_d": 1100,
+          "rest_factor": 0.35,
+          "skip_below_css_px": 0.12,
+          "note": "el filtro actúa antes de la perspectiva: css_blur = pantalla_px * d / P"
+        },
+        "hide_when_d_below": 25,
+        "fade_on_zoom": {
+          "enabled": true,
+          "fade_to_opacity": 0.0,
+          "when_fit_scale_above": 1.15,
+          "duration_s": 0.4,
+          "reason": "Al acercarse a un elemento de la pared (focus-*) las filas delanteras taparían la vista: se desvanecen y vuelven en la vista general."
+        }
+      },
+      "effect_note": "Es un dolly con paralaje (los pupitres salen hacia los lados porque la cámara pasa entre ellos), no un dolly zoom de Vértigo."
+    },
+    "pattern_slots": {
+      "ids": [
+        "pattern-slot-1",
+        "pattern-slot-2",
+        "pattern-slot-3",
+        "pattern-slot-4",
+        "pattern-slot-5"
+      ],
+      "icons": [
+        "pattern-icon-1",
+        "pattern-icon-2",
+        "pattern-icon-3",
+        "pattern-icon-4",
+        "pattern-icon-5"
+      ],
+      "note": "Columnas estrechas (unas 122 unidades): mostrar un título corto por columna y abrir el texto completo del patrón al hacer clic."
+    },
+    "clipboard_slot": "clipboard-slot"
   },
   "svg_conventions": {
     "viewBox": "0 0 1600 900",

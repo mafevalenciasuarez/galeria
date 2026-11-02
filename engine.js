@@ -8,6 +8,7 @@ import { initRoom3 } from './room3.js';
 import { initRoom4 } from './room4.js';
 import { initFinal, auditPublish } from './roomFinal.js';
 import { createProps } from './props.js';
+import { initEntrance, resolveDoorWall } from './entrance.js';
 import { makeWoodTexture, woodCeilingStyle } from './wood-ceiling.js';
 
 // One wood tile for the whole session. A failed canvas falls back to the flat grid.
@@ -58,23 +59,98 @@ function ceilingStyle(ceiling) {
   }
 }
 
+// Canvas painters for the planes, the same look as the CSS styles above. The planes are painted
+// into a canvas with a small backing store: as CSS backgrounds they are rastered in GPU tiles at
+// full size (tens of millions of px), and Edge/Brave run out of tile memory and drop wall tiles
+// mid-turn (walls flicker to their bare colour). Patterns are aligned to world px, so pieces join.
+const mod = (a, n) => ((a % n) + n) % n;
+
+// Lines of width lw at the end of every period, like repeating-linear-gradient(transparent 0 gap, color gap period).
+function stripes(ctx, along, origin, period, lw, w, h) {
+  let s = (period - lw) - mod(origin, period);
+  while (s > 0) s -= period;
+  for (; s < (along === 'y' ? h : w); s += period) {
+    if (along === 'y') ctx.fillRect(0, s, w, lw);
+    else ctx.fillRect(s, 0, lw, h);
+  }
+}
+
+function floorPaint(f) {
+  return (ctx, p, w, h) => {
+    ctx.fillStyle = f.color;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = f.cross_line_color;
+    stripes(ctx, 'x', p.xa, f.cross_px, f.line_width_px, w, h);
+    ctx.fillStyle = f.line_color;
+    stripes(ctx, 'y', p.za, f.line_px, f.line_width_px, w, h);
+  };
+}
+
+function gridPaint(c) {
+  return (ctx, p, w, h) => {
+    ctx.fillStyle = c.color;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = c.grid_color;
+    stripes(ctx, 'x', p.xa, c.grid_px, c.grid_line_px, w, h);
+    stripes(ctx, 'y', p.za, c.grid_px, c.grid_line_px, w, h);
+  };
+}
+
+async function ceilingPaint(ceiling) {
+  if (ceiling.type !== 'wood') return gridPaint(ceiling);
+  try {
+    if (!woodTextureUrl) {
+      woodTextureUrl = makeWoodTexture({
+        tilePx: ceiling.tile_px, plankPx: ceiling.plank_px,
+        seed: ceiling.seed, knotProb: ceiling.knot_prob,
+      });
+    }
+    const img = new Image();
+    img.src = woodTextureUrl;
+    await img.decode();
+    const tile = ceiling.tile_px || img.width;
+    const edge = ceiling.edge_line_px || 0;
+    return (ctx, p, w, h) => {
+      ctx.fillStyle = ceiling.base_color || '#cfa873';
+      ctx.fillRect(0, 0, w, h);
+      const pat = ctx.createPattern(img, 'repeat');
+      pat.setTransform(new DOMMatrix().translate(-mod(p.xa, tile), -mod(p.za, tile)).scale(tile / img.width));
+      ctx.fillStyle = pat;
+      ctx.fillRect(0, 0, w, h);
+      if (edge > 0) {
+        ctx.fillStyle = ceiling.edge_line_color;
+        ctx.fillRect(0, 0, w, edge);
+        ctx.fillRect(w - edge, 0, edge, h);
+      }
+    };
+  } catch (err) {
+    if (!woodFallbackWarned) {
+      console.warn('[ceiling] sin lienzo, se usa la cuadrícula', err);
+      woodFallbackWarned = true;
+    }
+    return gridPaint(ceiling);
+  }
+}
+
 // Horizontal planes in the same 3D context as the walls. Nothing is built when both are off.
-function mountPlanes(world, route, camera) {
+async function mountPlanes(world, route, camera) {
   const cfg = (route && route.world) || {};
   const ceiling = cfg.ceiling;
   const floor = cfg.floor;
   if (!(ceiling && ceiling.enabled) && !(floor && floor.enabled)) return;
+  const canPaint = !!document.createElement('canvas').getContext('2d');
   const planes = [];
-  const add = (kind, style, yUnits) => {
+  const add = (kind, paint, style, yUnits) => {
     const el = document.createElement('div');
     el.className = 'plane ' + kind;
     el.setAttribute('aria-hidden', 'true');
-    Object.assign(el.style, style);
+    if (canPaint) el.append(document.createElement('canvas'));
+    else Object.assign(el.style, style);
     world.append(el);
-    planes.push({ el, yUnits });
+    planes.push({ el, yUnits, paint: canPaint ? paint : null });
   };
-  if (ceiling && ceiling.enabled) add('ceiling', ceilingStyle(ceiling), ceiling.y_units);
-  if (floor && floor.enabled) add('floor', floorStyle(floor), floor.y_units);
+  if (ceiling && ceiling.enabled) add('ceiling', canPaint ? await ceilingPaint(ceiling) : null, ceilingStyle(ceiling), ceiling.y_units);
+  if (floor && floor.enabled) add('floor', floorPaint(floor), floorStyle(floor), floor.y_units);
   camera.setPlanes(planes);
 }
 
@@ -108,30 +184,59 @@ async function main() {
     const d = roomData[i];
     stops.push({ id: r.id, kind: 'room', room: r, data: d, title: (d && d.room && d.room.title) || r.id, svg: r.wall_svg });
   });
+  const route = gallery.route || null;
+  // Door wall of the classroom entrance (route segment door_enter): one more stop before the final room.
+  const entranceCfg = (gallery.final_room && gallery.final_room.entrance) || null;
+  const hasDoor = !!(entranceCfg && route && (route.segments || []).some((s) => s.type === 'door_enter'));
+  if (hasDoor) {
+    stops.push({ id: entranceCfg.door_wall.id, kind: 'door', title: 'Puerta del aula', svg: entranceCfg.door_wall.svg });
+  }
   if (gallery.final_room) {
     stops.push({ id: gallery.final_room.id, kind: 'final', title: gallery.final_room.title, svg: gallery.final_room.wall_svg });
   }
   stops.forEach((s, i) => { s.index = i; s.wallId = basename(s.svg); });
+  if (hasDoor) {
+    const doorStop = stops.find((s) => s.kind === 'door');
+    doorStop.wallId = entranceCfg.door_wall.id;
+    doorStop.loadUrl = (await resolveDoorWall(entranceCfg.door_wall)).url; // provisional wall when the SVG is missing
+  }
 
   const scene = $('scene');
   const world = $('world');
-  const route = gallery.route || null;
   if (route && route.world && route.world.scene_background) scene.style.background = route.world.scene_background;
-  const camera = createCamera({ scene, world, route, debug });
+  const camera = createCamera({ scene, world, route, entrance: entranceCfg, debug });
 
-  const walls = await Promise.all(stops.map((s) => loadWall({ index: s.index, id: s.wallId, svgPath: s.svg, title: s.title, framesFallback })));
+  const walls = await Promise.all(stops.map((s) => loadWall({ index: s.index, id: s.wallId, svgPath: s.loadUrl || s.svg, title: s.title, framesFallback })));
   const fillSvg = await fetch('walls/wall-fill.svg').then((r) => (r.ok ? r.text() : null)).catch(() => null);
   if (fillSvg) setFillTemplate(fillSvg);
 
+  const worldCfg = (route && route.world) || {};
+  const ceilingOn = !!(worldCfg.ceiling && worldCfg.ceiling.enabled);
+  const floorOn = !!(worldCfg.floor && worldCfg.floor.enabled);
+  // The hall ends at the door wall when there is one; the classroom has its own side walls.
+  const lastFillIndex = hasDoor ? stops.findIndex((s) => s.kind === 'door') : walls.length - 1;
   walls.forEach((w, i) => {
     stops[i].wall = w;
     // Fills go first so the wall paints over their 1px overlap.
-    buildFills(w, { first: i === 0, last: i === walls.length - 1 }).forEach((f) => world.append(f.el));
+    buildFills(w, { first: i === 0, last: i === lastFillIndex, top: !ceilingOn, bottom: !floorOn }).forEach((f) => world.append(f.el));
     world.append(w.el);
     camera.register(w);
   });
-  mountPlanes(world, route, camera);
+  await mountPlanes(world, route, camera);
   camera.measure();
+
+  // ---------- Aula entrance (door leaf, classroom shell, desks); the timeline lives in entrance.js ----------
+  let entrance = null;
+  if (hasDoor) {
+    entrance = initEntrance({
+      camera, world, cfg: entranceCfg,
+      doorWall: stops.find((s) => s.kind === 'door').wall,
+      classWall: stops.find((s) => s.kind === 'final').wall,
+      floorUnits: (route.world && route.world.floor && route.world.floor.y_units) || 822,
+      debug,
+      onOpen: () => { const f = stops.find((s) => s.kind === 'final'); if (f) showStop(f.index); },
+    });
+  }
 
   // Focus can scroll an overflow:hidden container; keep the scene pinned.
   scene.addEventListener('scroll', () => { scene.scrollTop = 0; scene.scrollLeft = 0; });
@@ -200,13 +305,13 @@ async function main() {
     menu.disabled = busy;
     soundBtn.disabled = !audioFor(current());
     // Only the current wall is reachable by keyboard.
-    // (Nothing is reachable while a corner turn runs.)
-    stops.forEach((s) => { s.wall.el.inert = traveling || s.index !== currentIndex; });
+    stops.forEach((s) => { s.wall.el.inert = s.index !== currentIndex; });
   }
 
   camera.onArrive = (wallId, frameId) => {
     const s = stopByWall(wallId);
     if (!s) return;
+    if (entrance) entrance.arrived(wallId);
     const entered = s.index !== currentIndex;
     if (entered) { currentIndex = s.index; audio.stop(); }
     syncNav();
@@ -223,7 +328,7 @@ async function main() {
 
   // ---------- Corner turns (route corner_90 and corner_90_outside) ----------
   // Each corner splits the route into sides: side s runs from corners[s - 1].b to corners[s].a.
-  const corners = camera.corners
+  const corners = [...camera.corners, ...(entrance ? camera.doors : [])]
     .map((c) => ({ type: c.type, a: stopByWall(c.between[0]), b: stopByWall(c.between[1]) }))
     .filter((c) => c.a && c.b)
     .sort((x, y) => x.a.index - y.a.index);
@@ -236,6 +341,17 @@ async function main() {
   live.setAttribute('aria-live', 'polite');
   document.body.append(live);
   const announce = (text) => { live.textContent = ''; setTimeout(() => { live.textContent = text; }, 30); };
+
+  // Takes the pointer and keyboard focus during a corner turn, so nothing on the walls can start a move.
+  const shield = document.createElement('div');
+  shield.id = 'turn-shield';
+  shield.tabIndex = -1;
+  shield.setAttribute('aria-hidden', 'true');
+  document.body.append(shield);
+  const startTurn = () => {
+    document.body.classList.add('turning');
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.wall')) shield.focus({ preventScroll: true });
+  };
 
   async function travel(i, opts) {
     traveling = true;
@@ -254,9 +370,16 @@ async function main() {
         if (currentIndex !== fromEdge.index || !cur || cur.wallId !== fromEdge.wallId || cur.frameId !== 'focus-frame') {
           await camera.goTo(fromEdge.wallId, 'focus-frame', opts);
         }
-        announce(`Girando a la ${toEdge.kind === 'room' ? 'Sala ' + toEdge.index : toEdge.title}`);
-        document.body.classList.add('turning');
-        await camera.turn(fromEdge.wallId, toEdge.wallId, opts && opts.duration === 0 ? { duration: 0 } : {});
+        const instant = !!opts && opts.duration === 0;
+        if (corner.type === 'door_enter') {
+          announce(fwd ? 'Entrando al aula de reflexión' : 'Saliendo del aula');
+          startTurn();
+          await entrance.play(fwd ? 'in' : 'out', { instant });
+        } else {
+          announce(`Girando a la ${toEdge.kind === 'room' ? 'Sala ' + toEdge.index : toEdge.title}`);
+          startTurn();
+          await camera.turn(fromEdge.wallId, toEdge.wallId, instant ? { duration: 0 } : {});
+        }
         document.body.classList.remove('turning');
         if (currentIndex !== toEdge.index) break; // the turn did not land; never loop
       }
@@ -498,6 +621,7 @@ async function main() {
         ['Probar giro interior', 'turn-inside', 'corner_90'],
         ['Probar giro exterior', 'turn-outside', 'corner_90_outside'],
         ['Probar giro', 'turn', 'corner_90'],
+        ['Probar entrada al aula', 'aula-enter', 'door_enter'],
       ].filter(([, , type]) => !type || corners.some((c) => c.type === type));
       dm.prepend(...entries.map(([label, value]) => new Option(label, value)));
       dm.selectedIndex = 0;
@@ -511,6 +635,12 @@ async function main() {
         if (c) showStop(sideOf(currentIndex) <= sideOf(c.a.index) ? c.b.index : c.a.index);
         return;
       }
+      if (dm.value === 'aula-enter') {
+        dm.selectedIndex = 0;
+        const c = corners.find((x) => x.type === 'door_enter');
+        if (c) showStop(sideOf(currentIndex) <= sideOf(c.a.index) ? c.b.index : c.a.index);
+        return;
+      }
       if (dm.value === 'turn-inside' || dm.value === 'turn-outside') {
         dm.selectedIndex = 0;
         const c = corners.find((x) => x.type === (dm.value === 'turn-inside' ? 'corner_90' : 'corner_90_outside'));
@@ -521,6 +651,7 @@ async function main() {
       camera.goTo(w, f);
     });
     window.__camera = camera;
+    window.__entrance = entrance;
     window.__props = props;
   }
 

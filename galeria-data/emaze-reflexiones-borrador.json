@@ -1,0 +1,120 @@
+{
+  "source": "Cuatro capturas de la diapositiva «Reflexión metacognitiva» de la versión anterior de la galería en Emaze (leídas desde imágenes: comprobar contra las diapositivas originales).",
+  "status": "borrador transcrito; NO cargado en gallery.json ni en los exp-*.json",
+  "how_to_use": "Cada texto describe lo que logró la experiencia. La rúbrica pide además qué aprendimos nosotros y cómo lo transferiríamos a nuestra práctica. Los textos son de ustedes: reescribirlos con esa mirada antes de pasarlos a transfer.user_text o a final_room.metacognitive_reflection.user_text.",
+  "items": [
+    {
+      "slide": 1,
+      "color": "morado",
+      "maps_to": "exp-realidad-aumentada",
+      "room": "Sala 3",
+      "truncated": false,
+      "verbatim": "La experiencia de integrar la realidad aumentada, en la cual los estudiantes no se limitaron a consumir contenido, sino que diseñaron sus propios mapas para luego proyectarlos e interactuar con ellos mediante dispositivos móviles. El paso de la representación bidimensional a la exploración espacial y tridimensional activa una comprensión de la temática geográfica.\n\nEs necesario que en este análisis se reconozca el entusiasmo que se genero en los estudiantes y el complemento novedosos que permitió la tecnología la verdadera prueba de la RA no reside en cuánto sorprende al alumno el primer día, sino en cómo ese recurso facilita la retención cognitiva y la comprensión a mediano plazo.",
+      "keep": [
+        "La idea final: la prueba de la RA es la retención y la comprensión a mediano plazo, no la sorpresa del primer día."
+      ],
+      "issues": [
+        "Afirma que la exploración 3D «activa una comprensión», pero el estudio solo midió percepciones (motivación, interactividad), no aprendizaje.",
+        "«Diseñaron sus propios mapas»: según el artículo los estudiantes colorearon las imágenes y grabaron narraciones; el recurso lo construyó la docente.",
+        "No dice que el estudio no midió retención ni comprensión; esa es la crítica y está solo implícita.",
+        "Errores de redacción: «se genero», «novedosos», falta puntuación antes de «la verdadera prueba».",
+        "No hay transferencia a la práctica propia."
+      ]
+    },
+    {
+      "slide": 2,
+      "color": "verde",
+      "maps_to": "exp-guardianes-cerros",
+      "room": "Sala 1",
+      "truncated": false,
+      "verbatim": "\"Esta experiencia permitió evidenciar un proceso de aprendizaje significativo y una transformación profunda en la forma de comprender el entorno natural. Inicialmente, las explicaciones sobre la importancia de los cerros se limitaban a percepciones generales y descriptivas. Sin embargo, el desarrollo de este proyecto y la realización de sesiones enfocadas en conceptos biológicos más rigurosos hicieron posible detallar y valorar la complejidad de los ecosistemas locales. Asimismo, mediante reflexiones grupales, los estudiantes identificaron los agentes contaminantes y las amenazas que ponen en riesgo estos espacios. De este modo, esta experiencia metacognitiva demuestra que asumir el rol de 'guardianes de los cerros' implica un compromiso activo y transformador, donde el conocimiento científico adquirido se convierte en una herramienta indispensable para proponer soluciones reales de conservación y defensa de nuestro patrimonio natural.\"",
+      "keep": [
+        "Las amenazas que los estudiantes identificaron (agentes contaminantes) sí están respaldadas por el artículo."
+      ],
+      "issues": [
+        "«Transformación profunda» y «demuestra» exceden la evidencia: el artículo reporta que la mayoría no relacionó los factores abióticos y casi todo lo reportado es la carta y las cartografías.",
+        "Los resultados del cuestionario inicial y final no se presentan en el texto del artículo, así que «inicialmente... sin embargo» no se puede comprobar.",
+        "Todo el texto va entre comillas sin fuente: si es una cita hay que referenciarla en APA 7; si es propio, quitar las comillas.",
+        "Habla de lo que lograron los estudiantes, no de lo que aprendimos nosotros ni de cómo lo adaptaríamos."
+      ]
+    },
+    {
+      "slide": 3,
+      "color": "rosa",
+      "maps_to": "exp-ia-aprendizaje-automatico",
+      "room": "Sala 4",
+      "truncated": false,
+      "verbatim": "Al analizar esta investigación, nos queda claro lo fundamental que es basar nuestra práctica docente en evidencia real. Trabajar con una muestra de 1,009 alumnos de 10 años en 19 aulas y 13 escuelas de la Comunidad de Madrid (49.3% niñas y 50.7% niños) le da un peso enorme a los resultados y hace que sean realmente aplicables a la educación primaria. Además, ver cómo funciona un diseño con evaluación antes y después (pretest/postest) nos permitió entender cómo medir de forma concreta el impacto real que tiene la tecnología en el aula. Demuestra que no es necesario empezar con programación compleja; basta con usar herramientas visuales y cercanas como Teachable Machine o RAISE (basado en Scratch 3.0 del MIT).\nEste análisis me deja una enseñanza clara sobre el papel del estudiante: el objetivo de usar tecnología en clase no es formar usuarios pasivos, sino creadores conscientes capaces de diseñar sus propios modelos de IA. A la vez, deja en evidencia que enseñar aprendizaje automático requiere desarrollar un pensamiento crítico. Como docente, no solo se debe enseñar a programar por bloques, sino que también invitar a reflexionar sobre la ética de los datos, cómo funcionan los algoritmos y el impacto que estas tecnologías tienen en la sociedad.",
+      "keep": [
+        "Las cifras de la muestra (1 009, 19 aulas, 13 centros, 49,3 % y 50,7 %) coinciden con el artículo.",
+        "El párrafo final es el único texto de las cuatro diapositivas que habla de lo que haría el docente: enseñar también ética de los datos, algoritmos e impacto."
+      ],
+      "issues": [
+        "Un tamaño de muestra grande no da «peso enorme»: la muestra es intencional y no probabilística, el diseño es preexperimental sin grupo de control y el resultado principal impreso muestra un descenso (6,24 a 5,54).",
+        "«Medir el impacto real» no es posible con ese diseño; mide cambios percibidos y puntuaciones, no impacto causal.",
+        "«Deja en evidencia» que se requiere pensamiento crítico: eso lo afirma el marco teórico del artículo, pero ninguna actividad ni medida del estudio lo aborda. Es justo el hueco que muestra el tablero de herramientas de la Sala 4.",
+        "Cambia de voz: «nos queda claro» y luego «me deja».",
+        "Gramática en la última frase: «sino que también invitar a reflexionar» (sería «sino también invitar a reflexionar»)."
+      ],
+      "transfer_scaffold": {
+        "note": "Preguntas guía, no texto. La respuesta debe escribirla el equipo.",
+        "prompts": [
+          "¿Qué muestra de verdad el estudio y cuál es su límite (diseño sin grupo de control, resultado impreso que baja de 6,24 a 5,54, muestra intencional)?",
+          "¿Qué dice el marco teórico del artículo que el estudio no llega a trabajar ni medir (ética y sesgos)?",
+          "En nuestro nivel y área, ¿qué actividad concreta propondríamos para que la ética de los datos y los sesgos no se queden solo en el discurso?",
+          "¿Cómo sabríamos si funcionó? ¿Qué evidencia recogeríamos nosotros, a diferencia del estudio?"
+        ]
+      }
+    },
+    {
+      "slide": 4,
+      "color": "amarillo",
+      "maps_to": null,
+      "room": "ninguna (experiencia reemplazada)",
+      "truncated": false,
+      "verbatim": "La experiencia Semillero Environmentcan / APPISES – Centros de Interés STEM+ constituye una alternativa pedagógica que busca fortalecer la motivación escolar mediante la conexión entre los contenidos académicos y las problemáticas ambientales y sociales que viven los estudiantes en sus comunidades. Su valor educativo radica en comprender que el aprendizaje adquiere mayor significado cuando los estudiantes reconocen la utilidad de lo que aprenden y encuentran oportunidades para participar activamente en la transformación de su entorno.\nDesde una perspectiva pedagógica, considero que uno de los mayores aportes de esta experiencia es que convierte los problemas de la comunidad en oportunidades para aprender. Sí, la experiencia responde de manera pertinente a la necesidad de fortalecer la motivación escolar y vincular los aprendizajes con la realidad de los estudiantes.\nLa investigación escolar, la programación creativa y el desarrollo de proyectos ambientales ofrecen oportunidades para que los jóvenes encuentren sentido a los contenidos académicos, desarrollen habilidades tecnológicas y participen en la búsqueda de soluciones para su comunidad.",
+      "keep": [],
+      "issues": [
+        "Corresponde a EnvironmentCan (2019), que se reemplazó por el aula invertida (Sala 2): no se puede reutilizar para esa sala.",
+        "Lee como respuesta a una pregunta guía («Sí, la experiencia responde...») más que como reflexión.",
+        "La sigla APPISES y «Centros de Interés STEM+» no aparecen en el artículo de 2019 que se leyó para la galería; verificar la fuente antes de citarlos.",
+        "Sala 2 (aula invertida) no tiene todavía ninguna reflexión escrita."
+      ]
+    }
+  ],
+  "transfer_ideas_espanol_4_5": {
+    "nota": "Sugerencias generadas con IA para 4.º y 5.º de primaria, área de Español. Son ideas de partida: el equipo decide, concreta y redacta la transferencia con sus palabras. Registrar el uso de IA en la declaración.",
+    "estructura_de_cuatro_frases": [
+      "Qué muestra el estudio y cuál es su límite",
+      "Qué no cubre o no mide",
+      "Qué actividad concreta haríamos en 4.º o 5.º de Español",
+      "Cómo sabríamos si funcionó"
+    ],
+    "rooms": {
+      "exp-guardianes-cerros": {
+        "limite_a_citar": "La evidencia reportada se concentra en la carta y las cartografías; los resultados del cuestionario inicial y final no se presentan y la mayoría no relacionó los factores abióticos.",
+        "actividad": "Siete equipos eligen un lugar del barrio o de la escuela y escriben un texto descriptivo y una carta formal dirigida a un destinatario real (dirección, biblioteca, alcaldía) pidiendo cuidarlo o mejorarlo. Trabajan descripción, registro formal y argumentación.",
+        "evidencia": "Guardar el primer texto diagnóstico y el texto final, y corregir ambos con la misma rúbrica (estructura, registro formal, argumentos, ortografía). El estudio no presenta esta comparación.",
+        "equidad_o_etica": "No requiere tecnología. Si la carta se publica o se envía, no incluir nombres de niños sin permiso."
+      },
+      "exp-aula-invertida-mate": {
+        "limite_a_citar": "Estudio de secundaria; cerca del 15 % del grupo experimental no alcanzó la mitad del visionado, se excluyó a 10 y a 9 estudiantes, y la implementación fue parcial (18,5 de 33 elementos).",
+        "actividad": "Videos de 2 a 3 minutos, con la voz de la docente, sobre una regla (por ejemplo acentuación de agudas, graves y esdrújulas). Se ven en la escuela en una estación rotativa o en casa si hay acceso; el tiempo de clase se usa para talleres de edición de textos entre compañeros.",
+        "evidencia": "Registrar quién vio qué (lista en papel o plataforma) y comparar un dictado previo y otro posterior sobre la misma regla. Analizar a TODOS, también a quienes no vieron el video: lo que el estudio no hizo.",
+        "equidad_o_etica": "Ofrecer siempre una alternativa sin dispositivo (ficha impresa, estación en clase) y no penalizar a quien no pudo ver el video en casa."
+      },
+      "exp-realidad-aumentada": {
+        "limite_a_citar": "Solo percepciones (motivación e interactividad), sin medida de aprendizaje ni retención; de 33 estudiantes solo 10 tenían internet y 6 instalaron la aplicación.",
+        "actividad": "«Cuento con voz»: cada estudiante ilustra las escenas de un cuento corto y graba su propia lectura; en la estación de aula, un dispositivo reproduce el audio de cada escena. Los niños producen el material, como en el estudio.",
+        "evidencia": "Preguntas de comprensión inmediatas y repetidas dos semanas después (retención), comparando con la misma lectura sin audio. El estudio no midió retención.",
+        "equidad_o_etica": "Funcionamiento sin conexión (audios guardados en equipos del aula). Grabar la voz de menores exige consentimiento y almacenamiento local, sin subir a plataformas."
+      },
+      "exp-ia-aprendizaje-automatico": {
+        "limite_a_citar": "Diseño preexperimental sin grupo de control; el resultado principal impreso baja de 6,24 a 5,54 aunque los autores concluyen mejora; la ética y los sesgos se proponen en el marco teórico pero no se trabajan ni se miden.",
+        "actividad": "«La máquina que no me entiende»: entrenar en Teachable Machine un modelo de sonido con pocas palabras y la voz de un solo estudiante, probarlo con otras voces, acentos y velocidades y discutir quién queda sin entender y por qué importan los datos de entrenamiento.",
+        "evidencia": "Rúbrica de tres niveles: describe qué hizo el modelo, explica por qué falló, propone cómo mejorar los datos. Además, las explicaciones orales o escritas de los niños.",
+        "equidad_o_etica": "Usar solo voces con consentimiento y no guardar las grabaciones; Teachable Machine no trabaja texto, así que el vínculo con Español viene del sonido o de la escritura a mano."
+      }
+    }
+  }
+}

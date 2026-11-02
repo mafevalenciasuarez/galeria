@@ -30,7 +30,10 @@ body { overflow: hidden; }
   background: var(--floor);
 }
 #world { position: absolute; inset: 0; transform-origin: 0 0; transform-style: preserve-3d; will-change: transform; }
-body.turning #world, body.turning .wall, body.turning .wall * { pointer-events: none !important; }
+/* Blocks clicks on the walls during a corner turn without restyling anything inside them:
+   a style change on the wall subtree makes Chrome repaint the SVG mid-turn, and it flickers. */
+#turn-shield { position: fixed; inset: 0; z-index: 20; display: none; outline: none; }
+body.turning #turn-shield { display: block; }
 
 .wall {
   position: absolute;
@@ -51,6 +54,23 @@ body.turning #world, body.turning .wall, body.turning .wall * { pointer-events: 
   backface-visibility: visible;
   pointer-events: none;
 }
+.plane > canvas { display: block; width: 100%; height: 100%; }
+
+/* ---------- Aula entrance: door leaf, classroom side walls, desks (children of #world, moved by camera.js) ---------- */
+.door-holder {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0; transform-style: preserve-3d;
+  pointer-events: none;
+}
+.door-leaf { position: absolute; transform-origin: left; pointer-events: none; }
+.door-leaf > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.aula-side { backface-visibility: visible; }
+.desk {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.desk img { display: block; width: 100%; height: 100%; }
 .wall-fill { position: absolute; overflow: hidden; pointer-events: none; }
 .wall-fill > svg { display: block; width: 100%; height: 100%; }
 .fill-placeholder.fill-top { background: var(--wall); }

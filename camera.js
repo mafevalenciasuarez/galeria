@@ -5,13 +5,15 @@
 // corner_90_outside (outside, left, the "cube" turn) does k -= 1.
 
 const FILL_EXTRA = 2000; // px a wall-fill strip extends beyond the wall
+const PLANE_DENSITY = 0.75; // canvas texels per CSS px for the ceiling and floor
+const PLANE_MAX_TEXELS = 6144; // longest side of a plane canvas
 
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const lerp = (a, b, t) => a + (b - a) * t;
 const DIRS = [{ x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }, { x: 0, z: -1 }];
 const dirOf = (k) => DIRS[((k % 4) + 4) % 4];
 
-export function createCamera({ scene, world, route = null, P: defaultP = 1200, debug = false }) {
+export function createCamera({ scene, world, route = null, entrance = null, P: defaultP = 1200, debug = false }) {
   const P = (route && route.world && route.world.perspective_px) || defaultP;
   const segments = (route && route.segments) || [];
   const cornerSeg = segments.find((s) => s.type === 'corner_90') || null;
@@ -19,7 +21,10 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
   const walls = new Map(); // wallId -> { id, index, el, frames: Map(frameId -> {x,y,w,h}) }
   const layout = new Map(); // wallId -> { O: {x, z}, k, d: {x, z}, n: {x, z} }
   const corners = []; // { id, type, between: [aId, bId], seg }
-  const dims = { vw: 0, vh: 0, wallPx: 0, wallTop: 0 };
+  const doors = []; // door_enter segments: { id, type, between: [doorWallId, classWallId], seg, Lr }
+  const props = []; // extra 3D elements that follow the camera: { el, getTf, skip }
+  // Dist = P / s, with s the fit scale of a whole wall (focus-frame): how far the camera stands from a wall.
+  const dims = { vw: 0, vh: 0, wallPx: 0, wallTop: 0, dist: 0 };
   // Camera pose: position in world px, yaw in degrees.
   const cam = { x: 0, y: 0, z: 0, yaw: 0 };
   let target = null;
@@ -29,6 +34,11 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     P,
     corner: cornerSeg,
     corners,
+    doors,
+    dims,
+    onFrame: null, // (pose) after every apply
+    onTarget: null, // (fitScale, wallId, frameId) when a goTo / place picks a frame
+    onMeasure: null, // after the layout is recomputed
     userInstant: false,
     onArrive: null,
     // The OS reduced-motion setting does not drive this. Only the gallery button does.
@@ -53,6 +63,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     const W = dims.wallPx;
     layout.clear();
     corners.length = 0;
+    doors.length = 0;
     let k = 0;
     let O = { x: 0, z: 0 };
     const put = (id) => {
@@ -65,6 +76,17 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
       if (seg.type === 'corner_90' || seg.type === 'corner_90_outside') {
         corners.push({ id: seg.id, type: seg.type, between: seg.between || [], seg });
         k += seg.type === 'corner_90_outside' ? -1 : 1;
+      } else if (seg.type === 'door_enter') {
+        // The classroom wall has the SAME heading as the door wall; its origin is the door wall's origin - n * Lr.
+        const [doorId, classId] = seg.between || [];
+        const LD = layout.get(doorId);
+        if (!LD || !walls.has(classId) || layout.has(classId)) continue;
+        const factor = (entrance && entrance.room && entrance.room.depth_factor) || seg.room_depth_factor || 1.8;
+        const Lr = factor * dims.dist;
+        doors.push({ id: seg.id, type: 'door_enter', between: [doorId, classId], seg, Lr });
+        k = LD.k;
+        O = { x: LD.O.x - LD.n.x * Lr, z: LD.O.z - LD.n.z * Lr };
+        put(classId);
       } else {
         (seg.walls || []).forEach((id) => { if (walls.has(id)) put(id); });
       }
@@ -81,6 +103,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     dims.vh = scene.clientHeight;
     dims.wallPx = Math.min(dims.vw, dims.vh * 16 / 9);
     dims.wallTop = (dims.vh - dims.wallPx * 9 / 16) / 2;
+    dims.dist = P / Math.min(dims.vw / dims.wallPx, dims.vh / (dims.wallPx * 9 / 16));
     computeLayout();
     const wh = dims.wallPx * 9 / 16;
     for (const w of walls.values()) {
@@ -111,6 +134,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
       });
     }
     layoutPlanes();
+    if (api.onMeasure) api.onMeasure();
   }
 
   function setPlanes(list) { planes.length = 0; planes.push(...list); }
@@ -165,6 +189,68 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     return notches;
   }
 
+  // Rectangle a minus rectangle b (axis aligned): up to four rectangles.
+  function subtractRect(a, b) {
+    const xa = Math.max(a.xa, b.xa), xb = Math.min(a.xb, b.xb);
+    const za = Math.max(a.za, b.za), zb = Math.min(a.zb, b.zb);
+    if (xa >= xb || za >= zb) return [a];
+    const out = [];
+    if (b.xa > a.xa) out.push({ xa: a.xa, xb: xa, za: a.za, zb: a.zb });
+    if (b.xb < a.xb) out.push({ xa: xb, xb: a.xb, za: a.za, zb: a.zb });
+    if (b.za > a.za) out.push({ xa, xb, za: a.za, zb: za });
+    if (b.zb < a.zb) out.push({ xa, xb, za: zb, zb: a.zb });
+    return out;
+  }
+
+  // Footprints for the ceiling and floor. The classroom (door_enter) is its own piece between the side
+  // walls; the hall is the bounding box minus that room and minus everything behind its far wall, so
+  // no plane ever crosses a wall plane.
+  function planeRects(box) {
+    const W = dims.wallPx;
+    let hall = [box];
+    const rooms = [];
+    for (const dr of doors) {
+      const LD = layout.get(dr.between[0]);
+      if (!LD) continue;
+      const pts = [
+        LD.O,
+        { x: LD.O.x + LD.d.x * W, z: LD.O.z + LD.d.z * W },
+        { x: LD.O.x + LD.d.x * W - LD.n.x * dr.Lr, z: LD.O.z + LD.d.z * W - LD.n.z * dr.Lr },
+        { x: LD.O.x - LD.n.x * dr.Lr, z: LD.O.z - LD.n.z * dr.Lr },
+      ];
+      const room = {
+        xa: Math.min(...pts.map((p) => p.x)), xb: Math.max(...pts.map((p) => p.x)),
+        za: Math.min(...pts.map((p) => p.z)), zb: Math.max(...pts.map((p) => p.z)),
+      };
+      rooms.push(room);
+      // Extend the room away from the door (-n) to the box edge: that strip lies behind the far wall.
+      const shadow = { ...room };
+      if (LD.n.x > 0) shadow.xa = box.xa; else if (LD.n.x < 0) shadow.xb = box.xb;
+      if (LD.n.z > 0) shadow.za = box.za; else if (LD.n.z < 0) shadow.zb = box.zb;
+      hall = hall.flatMap((r) => subtractRect(r, shadow));
+    }
+    return { hall, rooms };
+  }
+
+  // Cut a rectangle into tiles of at most MAX px per side; interior joints overlap by 1px (no seams).
+  const PLANE_TILE = 3900;
+  function tileRect(r) {
+    const nx = Math.max(1, Math.ceil((r.xb - r.xa) / PLANE_TILE));
+    const nz = Math.max(1, Math.ceil((r.zb - r.za) / PLANE_TILE));
+    const out = [];
+    for (let i = 0; i < nx; i++) {
+      for (let j = 0; j < nz; j++) {
+        out.push({
+          xa: r.xa + (r.xb - r.xa) * i / nx - (i > 0 ? 0.5 : 0),
+          xb: r.xa + (r.xb - r.xa) * (i + 1) / nx + (i < nx - 1 ? 0.5 : 0),
+          za: r.za + (r.zb - r.za) * j / nz - (j > 0 ? 0.5 : 0),
+          zb: r.za + (r.zb - r.za) * (j + 1) / nz + (j < nz - 1 ? 0.5 : 0),
+        });
+      }
+    }
+    return out;
+  }
+
   function splitX(box, notches) {
     const cuts = [box.xa, box.xb];
     notches.forEach(({ a, b }) => {
@@ -185,6 +271,18 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     return pieces.length ? pieces : [{ xa: box.xa, xb: box.xb, za: box.za, zb: box.zb, yUnits: null }];
   }
 
+  function paintPlane(el, piece, paint, k) {
+    const cv = el.querySelector('canvas');
+    if (!cv) return;
+    const w = piece.xb - piece.xa;
+    const h = piece.zb - piece.za;
+    cv.width = Math.max(1, Math.round(w * k));
+    cv.height = Math.max(1, Math.round(h * k));
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(cv.width / w, 0, 0, cv.height / h, 0, 0);
+    paint(ctx, piece, w, h);
+  }
+
   function layoutPlanes() {
     if (!planes.length || !dims.wallPx) return;
     const box = planeBox();
@@ -192,12 +290,15 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     const wallH = dims.wallPx * 9 / 16;
     const floorEl = planes.find((p) => p.el.classList.contains('floor'));
     const notches = floorEl ? matNotches() : [];
+    const { hall, rooms } = planeRects(box);
+    const rects = [...hall, ...rooms].flatMap(tileRect);
     planes.forEach((p) => {
       (p.extras || []).forEach((el) => el.remove());
       p.extras = [];
-      const pieces = p.el.classList.contains('floor')
-        ? splitX(box, notches)
-        : [{ xa: box.xa, xb: box.xb, za: box.za, zb: box.zb, yUnits: null }];
+      const isFloor = p.el.classList.contains('floor');
+      const pieces = rects.flatMap((r) => (isFloor
+        ? splitX(r, notches)
+        : [{ xa: r.xa, xb: r.xb, za: r.za, zb: r.zb, yUnits: null }]));
       const yNorm = dims.wallTop + (p.yUnits / 900) * wallH;
       p.parts = [];
       p.partTf = [];
@@ -207,6 +308,9 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
         const y = piece.yUnits != null ? dims.wallTop + (piece.yUnits / 900) * wallH + 1 : yNorm;
         el.style.width = (piece.xb - piece.xa) + 'px';
         el.style.height = (piece.zb - piece.za) + 'px';
+        // Canvas texels per CSS px: the backing store is a texture, so its size is the plane's cost.
+        const k = Math.min(PLANE_DENSITY, PLANE_MAX_TEXELS / Math.max(piece.xb - piece.xa, piece.zb - piece.za));
+        if (p.paint) paintPlane(el, piece, p.paint, k);
         p.parts.push(el);
         p.partTf.push(`translate3d(${piece.xa}px, ${y}px, ${piece.za}px) rotateX(90deg)`);
       });
@@ -244,7 +348,35 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
       const tfs = p.partTf || [p.layoutTf];
       parts.forEach((el, i) => { el.style.transform = `${camTf} ${tfs[i] || ''}`; });
     }
+    for (const pr of props) if (!pr.skip) pr.el.style.transform = `${camTf} ${pr.getTf()}`;
+    if (api.onFrame) api.onFrame(cam);
   }
+
+  // Extra element that follows the camera (classroom shell, desks, door leaf holder).
+  function addProp(el, getTf) {
+    const pr = { el, getTf, skip: false };
+    props.push(pr);
+    return pr;
+  }
+
+  // Door entrance drives the camera itself: set the pose and redraw.
+  function drive(pose) {
+    setPose(pose);
+    apply();
+  }
+
+  function arrive(wallId, frameId) {
+    if (tween) tween.kill();
+    tween = null;
+    target = { wallId, frameId };
+    const t = compute(wallId, frameId);
+    if (t) setPose(t);
+    apply();
+    log(`${wallId}/${frameId}`);
+    if (api.onArrive) api.onArrive(wallId, frameId);
+  }
+
+  const layoutOf = (id) => layoutTf.get(id) || '';
 
   function log(tag) {
     if (debug) console.log('[camera]', tag, { Ex: +cam.x.toFixed(1), Ey: +cam.y.toFixed(1), Ez: +cam.z.toFixed(1), yaw: +cam.yaw.toFixed(2) });
@@ -256,6 +388,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     const t = compute(wallId, frameId);
     if (!t) { console.warn('[camera] unknown frame', wallId, frameId); return Promise.resolve(); }
     target = { wallId, frameId };
+    if (api.onTarget) api.onTarget(t.s, wallId, frameId);
     if (tween) tween.kill();
     return new Promise((resolve) => {
       const done = () => {
@@ -358,6 +491,7 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
     if (tween) tween.kill();
     tween = null;
     target = { wallId, frameId };
+    if (api.onTarget) api.onTarget(t.s, wallId, frameId);
     setPose(t);
     const back = -zOffset;
     const r = cam.yaw * Math.PI / 180;
@@ -375,6 +509,6 @@ export function createCamera({ scene, world, route = null, P: defaultP = 1200, d
   }
 
   window.addEventListener('resize', relayout);
-  Object.assign(api, { register, setPlanes, measure, compute, goTo, turn, place, relayout });
+  Object.assign(api, { register, setPlanes, measure, compute, goTo, turn, place, relayout, refresh: apply, addProp, drive, arrive, layoutOf, layout });
   return api;
 }

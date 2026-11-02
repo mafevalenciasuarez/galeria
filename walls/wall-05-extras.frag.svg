@@ -1,0 +1,13 @@
+    <!-- Áreas invisibles del aula de reflexión: superficie de la pizarra, columnas de patrones y portapapeles. -->
+    <rect id="board-surface" x="83.4" y="112.8" width="687.5" height="393.1" fill="none"/>
+    <rect id="pattern-icon-1" x="90" y="122" width="124" height="84" fill="none" pointer-events="all"/>
+    <rect id="pattern-slot-1" x="90" y="214" width="124" height="266" fill="none"/>
+    <rect id="pattern-icon-2" x="229" y="122" width="122" height="84" fill="none" pointer-events="all"/>
+    <rect id="pattern-slot-2" x="229" y="214" width="122" height="266" fill="none"/>
+    <rect id="pattern-icon-3" x="367" y="122" width="124" height="84" fill="none" pointer-events="all"/>
+    <rect id="pattern-slot-3" x="367" y="214" width="124" height="266" fill="none"/>
+    <rect id="pattern-icon-4" x="507" y="122" width="120" height="84" fill="none" pointer-events="all"/>
+    <rect id="pattern-slot-4" x="507" y="214" width="120" height="266" fill="none"/>
+    <rect id="pattern-icon-5" x="643" y="122" width="122" height="84" fill="none" pointer-events="all"/>
+    <rect id="pattern-slot-5" x="643" y="214" width="122" height="266" fill="none"/>
+    <rect id="clipboard-slot" x="930.1" y="288.7" width="110.2" height="149.5" fill="none"/>
