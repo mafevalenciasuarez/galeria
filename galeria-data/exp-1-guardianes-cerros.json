@@ -12,7 +12,15 @@
     "country": "Colombia",
     "level": "Primaria (4.º grado)",
     "document_type": "Memorias del XI Congreso Latinoamericano de Enseñanza de la Biología y la Educación Ambiental, publicadas en revista",
-    "access": "Abierto"
+    "access": "Abierto",
+    "type_note": "Ya identificado en la extracción: ponencia de las Memorias del XI Congreso Latinoamericano de Enseñanza de la Biología y la Educación Ambiental, publicada en el número extraordinario de Bio-grafía. Los números extraordinarios de esta revista son memorias de congreso.",
+    "congress": {
+      "name": "XI Congreso Latinoamericano de Enseñanza de la Biología y la Educación Ambiental",
+      "dates": "27 y 28 de octubre de 2022",
+      "modality": "virtual",
+      "issn": "2619-3531",
+      "note": "Confirmado en el encabezado del PDF: Revista Bio-grafía, Año 2022, Número Extraordinario, pp. 2267-2277."
+    }
   },
   "context": {
     "summary": "Colegio Calasanz (privado), comuna 12 de Medellín. Cuarto de primaria, siete semanas, desarrolladas en su mayoría en alternancia por la pandemia: sesiones sincrónicas por Teams con la mitad del grupo y presenciales con la otra mitad.",
@@ -82,10 +90,12 @@
       "La evidencia de aprendizaje reportada se concentra en un producto (la carta) y las cartografías.",
       "Se describe un cuestionario inicial y final, pero sus resultados no se presentan en el texto.",
       "La mayoría de los estudiantes no relacionó los factores abióticos como esenciales y fue imprecisa al hablar de ellos.",
-      "Solo dos equipos mencionaron relaciones intra e interespecíficas, sin especificar tipos.",
+      "El texto dice que dos grupos mencionan relaciones intra e interespecíficas sin precisar el tipo, pero a continuación cita ejemplos de tres grupos (G6, G3 y G5), dos de ellos con tipos concretos (comensalismo, competencia, gregarismo, mutualismo): la cifra no es consistente (p. 2275).",
       "Es un caso único en un colegio privado: no permite generalizar.",
       "No se indica el año de implementación.",
-      "El artículo presenta los siete cerros como tutelares de la ciudad de Medellín, pero Quitasol (grupo G4) está en el municipio de Bello, al norte del área urbana de Medellín; el texto no lo aclara."
+      "El artículo presenta los siete cerros como tutelares de la ciudad de Medellín, pero Quitasol (grupo G4) está en el municipio de Bello, al norte del área urbana de Medellín; el texto no lo aclara.",
+      "Dos de los cuatro autores eran estudiantes de último semestre de la licenciatura (los otros dos, docentes de cátedra de la Universidad de Antioquia), según las notas al pie.",
+      "Las conclusiones afirman «una mayor inclusión de los elementos que hacen parte de un ecosistema» (p. 2276), pero no se presenta ninguna medida inicial con la que comparar."
     ]
   },
   "evidence": {
@@ -205,8 +215,30 @@
     "speaker_position": "top-right"
   },
   "verify": [
-    "Confirmar con el artículo en línea el formato de cita del número extraordinario.",
-    "No se indica el año de implementación en el texto.",
-    "El nivel de arbitraje de las memorias no está declarado en el texto leído."
-  ]
+    "Confirmado con el PDF: es una ponencia de las Memorias del XI Congreso Latinoamericano (27 y 28 de octubre de 2022, virtual) publicada en el número extraordinario de 2022; el año 2022 de la referencia es correcto.",
+    "El año de implementación del proyecto NO aparece en el texto: solo dice que duró siete semanas y se hizo en su mayoría en alternancia escolar por la pandemia de COVID-19.",
+    "Es una ponencia en memorias: el arbitraje no se declara en el texto. Presentarla como ponencia publicada en memorias y mencionar este límite en el análisis crítico."
+  ],
+  "ai_use_note": "Uso de IA: la misma declaración para las cuatro experiencias (ver «Uso de IA» en el aula de reflexión).",
+  "verify_items": [
+    {
+      "status": "resuelto",
+      "text": "Confirmado con el PDF: ponencia de las Memorias del XI Congreso Latinoamericano de Enseñanza de la Biología y la Educación Ambiental (27 y 28 de octubre de 2022, virtual), publicada en el número extraordinario de Bio-grafía de 2022.",
+      "publish": false,
+      "where": "interno"
+    },
+    {
+      "status": "limite",
+      "text": "El artículo no indica el año en que se realizó el proyecto: solo dice que duró siete semanas y fue en su mayoría en alternancia escolar por la pandemia de COVID-19.",
+      "publish": true,
+      "where": "lectura_critica"
+    },
+    {
+      "status": "limite",
+      "text": "Es una ponencia publicada en memorias de congreso y el texto no declara arbitraje; dos de los cuatro autores eran estudiantes de último semestre.",
+      "publish": true,
+      "where": "lectura_critica"
+    }
+  ],
+  "verify_items_note": "Estructura nueva de los avisos. status: resuelto, limite, nota o decision; publish true = visible para los visitantes en el lugar indicado en where; false = solo en la sección «Avisos de verificación» en modo draft."
 }

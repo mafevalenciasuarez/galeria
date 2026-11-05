@@ -5,11 +5,11 @@ import { el } from './ui.js';
 import { q, bboxBox, placeBox, hotspot } from './walls.js';
 
 const VB = { w: 1600, h: 900 };
+const ROW_KEYS = ['tool', 'use'];
 
 const FALLBACK_TABS = [
   { id: 'patrones', label: 'Patrones' },
-  { id: 'reflexion', label: 'Reflexión metacognitiva' },
-  { id: 'transferencia', label: 'Transferencia a mi práctica' },
+  { id: 'transferencia', label: 'Transferencia a la práctica' },
   { id: 'ia', label: 'Uso de IA' },
   { id: 'referencias', label: 'Referencias' },
 ];
@@ -23,22 +23,14 @@ const make = (tag, cls, text) => {
 
 const isBlank = (v) => v == null || (typeof v === 'string' && v.trim() === '');
 
-function pendingBox(text) {
-  const box = el('div', { class: 'pending-box' });
-  if (!isBlank(text)) box.textContent = text;
-  return box;
-}
-
-function columnList(decl) {
-  const cols = decl && decl.columns;
-  if (!Array.isArray(cols) || !cols.length) return null;
-  return cols.map((c) => (typeof c === 'string'
-    ? { id: c, label: c }
-    : { id: c.id || c.key, label: c.label || c.id || c.key })).filter((c) => c.id);
+// Match on maps_to only. An item with maps_to null belongs to no room.
+function priorItem(prior, roomId) {
+  const items = prior && Array.isArray(prior.items) ? prior.items : [];
+  return items.find((it) => it && it.maps_to === roomId) || null;
 }
 
 // Publish mode only. Draft mode must not console.error.
-export function auditPublish({ gallery, rooms, roomData }) {
+export function auditPublish({ gallery, rooms, roomData, prior }) {
   const mode = gallery.meta && gallery.meta.mode;
   if (mode !== 'publish') return;
   const fr = gallery.final_room || {};
@@ -50,13 +42,16 @@ export function auditPublish({ gallery, rooms, roomData }) {
   rooms.forEach((room, i) => {
     const d = roomData[i];
     if (d && d.transfer) mark(`${room.id}.transfer.user_text`, d.transfer.user_text);
+    const item = priorItem(prior, room.id);
+    if (!item || item.approved !== true || isBlank(item.verbatim)) {
+      pending.push(`emaze-reflexiones-borrador.items[maps_to=${room.id}].verbatim`);
+    }
   });
   const rows = fr.iag_declaration && fr.iag_declaration.draft_rows;
-  const cols = columnList(fr.iag_declaration);
-  if (Array.isArray(rows) && cols) {
+  if (Array.isArray(rows)) {
     rows.forEach((row, r) => {
-      cols.forEach((c) => {
-        if (!row || row[c.id] == null) pending.push(`final_room.iag_declaration.draft_rows[${r}].${c.id}`);
+      ROW_KEYS.forEach((key) => {
+        if (!row || row[key] == null) pending.push(`final_room.iag_declaration.draft_rows[${r}].${key}`);
       });
     });
   }
@@ -66,11 +61,10 @@ export function auditPublish({ gallery, rooms, roomData }) {
   pending.forEach((path) => console.error(`[publish] pendiente: ${path}`));
 }
 
-export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio }) {
+export function initFinal({ wall, gallery, rooms, roomData, prior, openCard, playAudio }) {
   const fr = gallery.final_room;
   if (!fr) return;
   const draft = !gallery.meta || gallery.meta.mode !== 'publish';
-  const placeholders = fr.placeholders || {};
   const tabs = tabList(fr);
   const standIns = standInList(fr, rooms, roomData, tabs);
   const specs = tabs.map((tab) => ({
@@ -81,6 +75,17 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
   const kicker = [gallery.meta && gallery.meta.title, gallery.meta && gallery.meta.course, gallery.meta && gallery.meta.activity]
     .filter(Boolean).join(' · ');
 
+  const live = document.createElement('div');
+  live.className = 'sr-only';
+  live.setAttribute('aria-live', 'polite');
+  live.setAttribute('aria-atomic', 'true');
+  document.body.append(live);
+  const announceTab = (label) => {
+    if (!label) return;
+    live.textContent = '';
+    setTimeout(() => { live.textContent = label; }, 30);
+  };
+
   const show = (tab, roomId) => openCard({
     specs,
     tab: tab || (specs[0] && specs[0].id),
@@ -88,7 +93,7 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
     kicker,
     scrollTo: roomId || null,
     footer: teamFooter(),
-    extra: draft ? verifyBlock() : null,
+    onTab: (spec) => announceTab(spec && spec.label),
   });
 
   const activate = (entry) => {
@@ -169,31 +174,41 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
     if (!spec || !Array.isArray(spec.ids)) return;
     spec.ids.forEach((slotId, i) => {
       const item = patterns[i];
-      const title = item && item.pattern;
-      if (!title) {
-        console.warn(`[final] no pattern text for #${slotId}`);
-        return;
-      }
+      const full = item && item.pattern;
+      const shortTitle = item && item.short_title;
       const open = () => show('patrones', 'pattern-' + (i + 1));
       const slot = q(wall, '#' + slotId);
       const box = slot && bboxBox(slot);
-      if (!box) {
-        console.warn(`[final] #${slotId} not found in ${wall.id}`);
-      } else {
-        const btn = make('button', 'pattern-slot', title);
-        btn.type = 'button';
-        btn.setAttribute('aria-label', title);
-        placeBox(btn, box);
-        btn.addEventListener('click', (e) => { e.preventDefault(); open(); });
-        btn.addEventListener('keydown', (e) => {
+      if (!box) console.warn(`[final] #${slotId} not found in ${wall.id}`);
+      else if (isBlank(shortTitle)) console.warn(`[final] no short_title for #${slotId}`);
+      else {
+        const label = make('button', 'pattern-slot', shortTitle);
+        label.type = 'button';
+        label.setAttribute('aria-label', isBlank(full) ? shortTitle : full);
+        placeBox(label, box);
+        label.addEventListener('click', (e) => { e.preventDefault(); open(); });
+        label.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
         });
-        wall.overlay.append(btn);
+        wall.overlay.append(label);
       }
       const iconId = spec.icons && spec.icons[i];
       const icon = iconId && q(wall, '#' + iconId);
-      if (icon) hotspot(wall, icon, { label: title, cls: 'pattern-icon', onActivate: open });
-      else if (iconId) console.warn(`[final] #${iconId} not found in ${wall.id}`);
+      if (!icon) {
+        if (iconId) console.warn(`[final] #${iconId} not found in ${wall.id}`);
+        return;
+      }
+      // The svg root is aria-hidden, so this hotspot is the operable button.
+      if (!isBlank(full)) {
+        icon.setAttribute('role', 'button');
+        icon.setAttribute('aria-label', full);
+        icon.setAttribute('pointer-events', 'all');
+      }
+      hotspot(wall, icon, {
+        label: isBlank(full) ? (iconId || slotId) : full,
+        cls: 'pattern-icon',
+        onActivate: open,
+      });
     });
   }
 
@@ -205,60 +220,72 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
       if (item.evidence) section.append(el('p', {}, item.evidence));
       container.append(section);
     });
-    if (!isBlank(fr.pattern_note)) {
-      const note = el('p', { class: 'pattern-note' });
-      if (draft) note.append(el('span', { class: 'draft-badge' }, 'Borrador'));
-      note.append(document.createTextNode(draft ? ' ' + fr.pattern_note : fr.pattern_note));
-      container.append(note);
-    }
   }
 
   function renderReflection(container) {
     const block = fr.metacognitive_reflection || {};
     if (!isBlank(block.prompt)) container.append(el('blockquote', { class: 'reflect-quote' }, block.prompt));
-    container.append(isBlank(block.user_text) ? pendingBox(placeholders.pending) : el('p', {}, block.user_text));
+    if (!isBlank(block.user_text)) container.append(el('p', {}, block.user_text));
+    if (!draft) return;
+    const link = el('a', { class: 'experience-link', href: '#transferencia' }, 'Ver las reflexiones por experiencia');
+    link.addEventListener('click', (e) => { e.preventDefault(); show('transferencia'); });
+    container.append(el('p', {}, link));
+  }
+
+  function priorBlock(roomId) {
+    const item = priorItem(prior, roomId);
+    const visible = item && !isBlank(item.verbatim) && (draft || item.approved === true);
+    if (!visible) return null;
+    const wrap = el('div', { class: 'prior-reflection' });
+    wrap.append(el('p', { class: 'prior-verbatim' }, item.verbatim));
+    return wrap;
   }
 
   function renderTransfer(container) {
     rooms.forEach((room, i) => {
-      const d = roomData[i];
-      const title = d && d.room && d.room.title;
-      const transfer = d && d.transfer;
-      if (!title && !transfer) return;
+      const d = roomData[i] || {};
+      const title = d.room && d.room.title;
+      const transfer = d.transfer;
       const section = el('section', { class: 'transfer-block', 'data-room': room.id });
       if (title) section.append(el('h3', {}, title));
+      const reflection = priorBlock(room.id);
+      if (reflection) section.append(reflection);
       if (transfer && !isBlank(transfer.prompt)) section.append(el('p', {}, transfer.prompt));
-      section.append(transfer && !isBlank(transfer.user_text) ? el('p', {}, transfer.user_text) : pendingBox(placeholders.pending));
+      if (transfer && !isBlank(transfer.user_text)) section.append(el('p', {}, transfer.user_text));
       container.append(section);
     });
   }
 
   function renderIa(container) {
     const decl = fr.iag_declaration || {};
-    if (!isBlank(decl.template_prompt)) container.append(el('p', {}, decl.template_prompt));
-    container.append(isBlank(decl.user_text) ? pendingBox(placeholders.pending) : el('p', {}, decl.user_text));
-    const cols = columnList(decl);
+    if (!isBlank(decl.scope)) container.append(el('p', { class: 'ia-scope' }, decl.scope));
+    const labels = Array.isArray(decl.columns) ? decl.columns : null;
     const rows = Array.isArray(decl.draft_rows) ? decl.draft_rows : null;
-    if (!cols || !rows) {
+    if (!labels || !labels.length || !rows) {
       if (decl.columns || decl.draft_rows) console.warn('[final] iag_declaration.columns or draft_rows is missing; skipping the table');
-      return;
+    } else {
+      const table = el('table', { class: 'ia-table' });
+      if (!isBlank(decl.scope)) table.setAttribute('aria-label', decl.scope);
+      table.append(el('thead', {}, el('tr', {}, labels.map((c) => el('th', { scope: 'col' }, typeof c === 'string' ? c : (c.label || ''))))));
+      const body = el('tbody');
+      rows.forEach((row) => {
+        const cells = ROW_KEYS.slice(0, labels.length).map((key) => {
+          const value = row ? row[key] : null;
+          const td = el('td');
+          if (value != null) td.append(document.createTextNode(String(value)));
+          return td;
+        });
+        body.append(el('tr', {}, cells));
+      });
+      table.append(body);
+      container.append(table);
     }
-    if (!isBlank(placeholders.pending_ai_rows)) container.append(el('p', { class: 'muted' }, placeholders.pending_ai_rows));
-    const anyNull = rows.some((row) => cols.some((c) => !row || row[c.id] == null));
-    const hideBadges = !draft && !anyNull;
-    const table = el('table', { class: 'ia-table' });
-    table.append(el('thead', {}, el('tr', {}, cols.map((c) => el('th', { scope: 'col' }, c.label)))));
-    const body = el('tbody');
-    rows.forEach((row) => {
-      const cells = cols.map((c) => el('td', {}, !row || row[c.id] == null ? pendingBox(placeholders.pending) : String(row[c.id])));
-      const status = row && row.status;
-      if (status && cells.length && !(hideBadges && String(status).toLowerCase() === 'borrador')) {
-        cells[cells.length - 1].append(el('span', { class: 'draft-badge' }, String(status)));
-      }
-      body.append(el('tr', {}, cells));
-    });
-    table.append(body);
-    container.append(table);
+    if (!isBlank(decl.user_text)) {
+      container.append(el('p', { class: 'ia-declaration' }, decl.user_text));
+    } else if (draft && !isBlank(decl.user_text_draft)) {
+      const text = String(decl.user_text_draft).replace(/\s*\[Pendiente[^\]]*\]\s*/g, ' ').replace(/\s+/g, ' ').trim();
+      container.append(el('p', { class: 'ia-declaration' }, text));
+    }
   }
 
   function renderRefs(container) {
@@ -269,7 +296,7 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
       const d = roomData[i];
       const apa = d && d.source && d.source.apa;
       if (isBlank(apa)) return;
-      items.push({ text: apa, note: d.source.doi_note });
+      items.push({ text: apa });
     });
     (fr.data_credits || []).forEach((credit) => {
       if (!isBlank(credit)) items.push({ text: credit });
@@ -277,9 +304,7 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
     items.sort((a, b) => a.text.localeCompare(b.text, 'es', { sensitivity: 'base' }));
     const ul = el('ul', { class: 'ref-list' });
     items.forEach((item) => {
-      const li = el('li', { class: 'apa' }, item.text);
-      if (draft && !isBlank(item.note)) li.append(el('span', { class: 'doi-warn' }, item.note));
-      ul.append(li);
+      ul.append(el('li', { class: 'apa' }, item.text));
     });
     container.append(ul);
     if (draft && !isBlank(fr.references_note)) container.append(el('p', { class: 'pattern-note' }, fr.references_note));
@@ -288,24 +313,9 @@ export function initFinal({ wall, gallery, rooms, roomData, openCard, playAudio 
   function teamFooter() {
     const names = gallery.meta && gallery.meta.team;
     if (!Array.isArray(names) || !names.length) return null;
-    const shown = names.map((name) => (
-      typeof name === 'string' && name.startsWith('TODO') && !isBlank(placeholders.team_pending)
-        ? placeholders.team_pending
-        : name
-    ));
+    const shown = names.filter((name) => !(typeof name === 'string' && name.startsWith('TODO')));
+    if (!shown.length) return null;
     return el('p', { class: 'team-line' }, shown.join(' · '));
-  }
-
-  function verifyBlock() {
-    const groups = rooms.map((room, i) => {
-      const d = roomData[i];
-      const items = d && Array.isArray(d.verify) ? d.verify.filter((v) => !isBlank(v)) : [];
-      if (!items.length) return null;
-      const title = (d && d.room && d.room.title) || room.id;
-      return el('section', {}, el('h3', {}, title), el('ul', {}, items.map((v) => el('li', {}, v))));
-    }).filter(Boolean);
-    if (!groups.length) return null;
-    return el('details', { class: 'verify' }, el('summary', {}, 'Avisos de verificación'), groups);
   }
 }
 
@@ -327,7 +337,7 @@ function standInList(fr, rooms, roomData, tabs) {
     return given.map(normalizeBox);
   }
   console.warn('[final] final_room.placeholder_layout.stand_ins is missing; placing the section tabs and the four room titles');
-  const transfer = tabs.find((t) => t.id === 'transferencia') || { id: 'transferencia', label: 'Transferencia a mi práctica' };
+  const transfer = tabs.find((t) => t.id === 'transferencia') || { id: 'transferencia', label: 'Transferencia a la práctica' };
   const others = tabs.filter((t) => t.id !== 'transferencia');
   const backpacks = rooms.map((room, i) => {
     const d = roomData[i];

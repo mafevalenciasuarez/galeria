@@ -293,8 +293,30 @@
     "speaker_position": "top-right"
   },
   "verify": [
-    "Los autores del artículo de 2025 en Profesorado parecen reportar el mismo grupo (57 estudiantes y 2 docentes) desde la percepción: usar solo uno como experiencia independiente.",
-    "Confirmar el cálculo propio del tamaño del efecto antes de publicarlo.",
-    "Confirmar en el artículo que cada grupo empezó con 67 estudiantes (57 + 10 y 58 + 9), derivado por suma."
-  ]
+    "Decisión tomada: el artículo de 2025 en Profesorado parece reportar el mismo grupo (57 estudiantes y 2 docentes) desde la percepción; se usa solo el de 2024 en Revista Educación como experiencia independiente.",
+    "Recalculado y confirmado: d de Cohen ≈ 0,67 con las cifras impresas (posprueba 9,12, DE 2,87, n = 57 frente a 7,22, DE 2,77, n = 58; DE agrupada 2,82). El artículo no reporta tamaño del efecto: presentarlo como «cálculo propio».",
+    "Dato calculado, no literal: el artículo dice 134 al inicio, 115 al final (57 y 58), 10 excluidos del grupo experimental y 9 del de control; 57 + 10 = 67 y 58 + 9 = 67 (y 10 + 9 = 134 − 115). Mostrarlo como «calculado a partir de las cifras del artículo». La Tabla 1 del artículo da la distribución final."
+  ],
+  "ai_use_note": "Uso de IA: la misma declaración para las cuatro experiencias (ver «Uso de IA» en el aula de reflexión).",
+  "verify_items": [
+    {
+      "status": "decision",
+      "text": "Se usa solo el artículo de 2024 en Revista Educación como experiencia independiente: el de 2025 en Profesorado parece reportar el mismo grupo desde la percepción.",
+      "publish": false,
+      "where": "interno"
+    },
+    {
+      "status": "resuelto",
+      "text": "Tamaño del efecto: cálculo propio d ≈ 0,67 con las cifras impresas (posprueba 9,12, DE 2,87, n = 57 frente a 7,22, DE 2,77, n = 58). El artículo no lo reporta.",
+      "publish": true,
+      "where": "lectura_critica"
+    },
+    {
+      "status": "nota",
+      "text": "El total inicial por grupo (67 y 67) está calculado a partir de las cifras del artículo (57 + 10 y 58 + 9; 134 en total), no es una cita literal.",
+      "publish": true,
+      "where": "casilleros"
+    }
+  ],
+  "verify_items_note": "Estructura nueva de los avisos. status: resuelto, limite, nota o decision; publish true = visible para los visitantes en el lugar indicado en where; false = solo en la sección «Avisos de verificación» en modo draft."
 }

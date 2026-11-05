@@ -17,7 +17,8 @@
       "10.15517/isucr.v24i50.54010",
       "10.15517/isucr.v24i50.51353"
     ],
-    "doi_note": "El encabezado del PDF muestra un DOI terminado en 51353 y la línea Cómo citar uno terminado en 54010. Comprobar cuál resuelve antes de entregar la referencia."
+    "doi_note": "Resuelto: el DOI del artículo es 10.15517/isucr.v24i50.54010 (la página de la revista y su «Cómo citar» lo muestran). El número 51353 del encabezado del PDF es el del fascículo: aparece también en el encabezado de otro artículo del mismo número (Quesada Chaves, cuyo propio DOI es 10.15517/isucr.v24i50.55658).",
+    "doi_resolved": "10.15517/isucr.v24i50.54010"
   },
   "context": {
     "summary": "Escuela Enrique Pinto Fernández, San Rafael de Alajuela. Cuarto grado, Estudios Sociales, tema Espacios democráticos de mi región. Prototipo en julio de 2020 y recurso final en agosto de 2020, durante la pandemia.",
@@ -185,9 +186,30 @@
     "speaker_position": "top-right"
   },
   "verify": [
-    "Resolver el DOI correcto (54010 o 51353).",
-    "Confirmar el denominador de los porcentajes de las figuras 4 y 5.",
-    "Confirmar en el artículo que 23 estudiantes no tenían internet (33 − 10) y 4 tenían internet sin instalar (10 − 6).",
-    "La ubicación del pin de la escuela en San Rafael de Alajuela es aproximada."
-  ]
+    "Límite del propio artículo: no aclara si los porcentajes de las figuras 4 y 5 se calculan sobre 6 o sobre 10 estudiantes. Mencionarlo como limitación; no es algo que el equipo pueda resolver.",
+    "La ubicación del pin de la escuela en San Rafael de Alajuela es aproximada.",
+    "Confirmado en el texto del artículo: solo 10 de los 33 matriculados tenían acceso a Internet y los otros 23 trabajaban con guías autónomas; el recurso se envió a 10 estudiantes, de los cuales 6 lo instalaron y 4 no."
+  ],
+  "ai_use_note": "Uso de IA: la misma declaración para las cuatro experiencias (ver «Uso de IA» en el aula de reflexión).",
+  "verify_items": [
+    {
+      "status": "limite",
+      "text": "El artículo no aclara si los porcentajes de las figuras 4 y 5 se calculan sobre 6 o sobre 10 estudiantes.",
+      "publish": true,
+      "where": "lectura_critica"
+    },
+    {
+      "status": "nota",
+      "text": "La ubicación de la escuela en San Rafael de Alajuela es aproximada en el mapa.",
+      "publish": true,
+      "where": "mapa"
+    },
+    {
+      "status": "resuelto",
+      "text": "Confirmado en el texto del artículo: solo 10 de los 33 matriculados tenían acceso a Internet y los otros 23 trabajaban con guías autónomas; el recurso se envió a 10 estudiantes, de los cuales 6 lo instalaron y 4 no. Además, el DOI correcto es 10.15517/isucr.v24i50.54010 (51353 es el número del fascículo en el encabezado).",
+      "publish": false,
+      "where": "interno"
+    }
+  ],
+  "verify_items_note": "Estructura nueva de los avisos. status: resuelto, limite, nota o decision; publish true = visible para los visitantes en el lugar indicado en where; false = solo en la sección «Avisos de verificación» en modo draft."
 }

@@ -2,6 +2,7 @@
 // plaque labels and the flip board. Everything is built from the room JSON;
 // a missing SVG id is reported with console.warn and that feature is skipped.
 import { q, placeBox } from './walls.js';
+import { placedNotes } from './ui.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const VB = { w: 1600, h: 900 };
@@ -205,6 +206,7 @@ export function initRoom2({ wall, room, data, isInstant }) {
     btn.setAttribute('aria-pressed', 'false');
     wrap.append(btn);
     if (L.caption) wrap.append(make('p', 'lockers-caption', L.caption));
+    placedNotes(data, 'casilleros').forEach((it) => wrap.append(make('p', 'lockers-note', it.text)));
     wall.overlay.append(wrap);
 
     const message = () => 'Candados visibles: ' + banks

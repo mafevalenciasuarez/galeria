@@ -6,10 +6,8 @@
     "course": "Especialización en Didáctica & TIC",
     "activity": "Actividad 2",
     "team": [
-      "TODO_NOMBRE_1",
-      "TODO_NOMBRE_2",
-      "TODO_NOMBRE_3",
-      "TODO_NOMBRE_4"
+      "María Fernanda Valencia Suárez",
+      "Rosa Lina Ramírez"
     ],
     "language": "es",
     "curatorial_thesis": "En estas cuatro experiencias la tecnología pasa de telón de fondo a infraestructura, recurso y objeto de aprendizaje. El valor pedagógico depende del diseño didáctico y de quién queda fuera, no del dispositivo.",
@@ -750,23 +748,28 @@
     "cross_gallery_patterns": [
       {
         "pattern": "Se mide más la motivación y la satisfacción que el aprendizaje.",
-        "evidence": "Salas 3 y 4 se apoyan sobre todo en percepciones; la sala 2 usa notas pero con exclusiones asimétricas."
+        "evidence": "Salas 3 y 4 se apoyan sobre todo en percepciones; la sala 2 usa notas pero con exclusiones asimétricas.",
+        "short_title": "Motivación, no aprendizaje"
       },
       {
         "pattern": "El acceso condiciona quién participa.",
-        "evidence": "Sala 3: de 33 estudiantes solo 10 tenían internet y 6 instalaron la aplicación. Sala 2: cerca del 15 % del grupo no alcanzó la mitad del visionado."
+        "evidence": "Sala 3: de 33 estudiantes solo 10 tenían internet y 6 instalaron la aplicación. Sala 2: cerca del 15 % del grupo no alcanzó la mitad del visionado.",
+        "short_title": "El acceso decide"
       },
       {
         "pattern": "Diseños pequeños o sin control sostienen lenguaje causal.",
-        "evidence": "Salas 2, 3 y 4 usan verbos como demuestra o causa; solo la sala 2 tiene grupo de control."
+        "evidence": "Salas 2, 3 y 4 usan verbos como demuestra o causa; solo la sala 2 tiene grupo de control.",
+        "short_title": "Causalidad sin control"
       },
       {
         "pattern": "La ética de la tecnología se declara más de lo que se trabaja.",
-        "evidence": "Sala 4 sostiene que la alfabetización en IA incluye sesgos y ética, y no los mide."
+        "evidence": "Sala 4 sostiene que la alfabetización en IA incluye sesgos y ética, y no los mide.",
+        "short_title": "Ética declarada, no medida"
       },
       {
         "pattern": "La fidelidad de implementación es parcial.",
-        "evidence": "Sala 2: 18,5 de 33 elementos observados en promedio."
+        "evidence": "Sala 2: 18,5 de 33 elementos observados en promedio.",
+        "short_title": "Implementación parcial"
       }
     ],
     "pattern_note": "Patrones propuestos como punto de partida. Verifícalos y reescríbelos con tus palabras.",
@@ -780,33 +783,40 @@
       "template_prompt": "Lista cada herramienta de IA usada, para qué (extracción de campos, sugerencia de estructura, código del motor 3D, borradores de guion), qué parte revisaste y reescribiste tú, y cómo verificaste los datos contra las fuentes.",
       "draft_rows": [
         {
-          "tool": "Claude (Anthropic)",
-          "use": "Extracción de los campos de cada experiencia, estructura de los archivos JSON, borradores de guiones de audio, scripts de apoyo para las paredes SVG y borradores de prompts",
+          "tool": "Claude Sonnet 5.5 (Anthropic)",
+          "use": "Implementaciones grandes: cada pared de sala, los efectos de transición 3D y el motor de la galería; además, extracción de los campos de las cuatro experiencias a partir de los artículos, estructura de los archivos de datos, y borradores de guiones de audio, de preguntas guía y de ideas de transferencia",
           "reviewed": null,
           "verified": null,
-          "status": "borrador"
+          "status": "confirmar las dos últimas columnas"
         },
         {
-          "tool": "Generador de imágenes (indicar cuál)",
-          "use": "Imágenes de referencia de composición para cada pared; las paredes finales se redibujaron como SVG",
+          "tool": "Grok 4.7 (xAI)",
+          "use": "Ajustes de detalle por sala después de cada implementación: depuración y modificaciones, por ejemplo actualización de los textos informativos",
           "reviewed": null,
           "verified": null,
-          "status": "borrador"
+          "status": "confirmar las dos últimas columnas"
         },
         {
           "tool": "Cursor",
-          "use": "Implementación del motor de cámara 3D y de las interacciones",
+          "use": "Entorno de edición en el que se aplicaron los prompts de implementación",
           "reviewed": null,
           "verified": null,
-          "status": "borrador"
+          "status": "confirmar si se usó y con qué modelo"
+        },
+        {
+          "tool": "Adobe Illustrator (no es IA generativa)",
+          "use": "Todas las ilustraciones y paredes (SVG) son material propio del equipo, dibujado en Illustrator",
+          "reviewed": "Material propio",
+          "verified": "No aplica",
+          "status": "material propio"
         }
       ],
       "columns": [
         "Herramienta",
-        "Para qué",
-        "Qué revisamos y reescribimos nosotros",
-        "Cómo verificamos"
-      ]
+        "Para qué"
+      ],
+      "scope": "Toda la galería: las cuatro experiencias, el aula de reflexión y el motor. Es la misma declaración para todos los estudios.",
+      "user_text_draft": "Declaramos el uso de inteligencia artificial generativa en la construcción de esta galería. Claude Sonnet 5.5 (Anthropic) realizó las implementaciones grandes: cada pared de sala, los efectos de transición 3D y el motor, y nos ayudó a extraer los campos de las cuatro experiencias a partir de los artículos y a redactar borradores de guiones de audio, de preguntas guía y de ideas de transferencia. Grok 4.7 (xAI) se usó después, en cada sala, para ajustar detalles: depuración y actualización de textos informativos. Todas las ilustraciones y paredes son material propio, dibujado en Adobe Illustrator."
     },
     "references_apa7": [
       "exp-guardianes-cerros",
@@ -822,12 +832,7 @@
       {
         "id": "patrones",
         "label": "Patrones",
-        "source": "cross_gallery_patterns + pattern_note"
-      },
-      {
-        "id": "reflexion",
-        "label": "Reflexión metacognitiva",
-        "source": "metacognitive_reflection"
+        "source": "cross_gallery_patterns"
       },
       {
         "id": "transferencia",
@@ -889,11 +894,6 @@
         "id": "bookshelf",
         "label": "Estante: referencias",
         "tab": "referencias"
-      },
-      {
-        "id": "content-slot",
-        "label": "Panel: reflexión metacognitiva",
-        "tab": "reflexion"
       },
       {
         "id": "speaker",
@@ -967,15 +967,6 @@
           "h": 80,
           "label": "Estante · Referencias",
           "tab": "referencias"
-        },
-        {
-          "id": "content-slot",
-          "x": 1170,
-          "y": 253,
-          "w": 354,
-          "h": 241,
-          "label": "Panel · Reflexión",
-          "tab": "reflexion"
         }
       ]
     },
@@ -1110,7 +1101,16 @@
       ],
       "note": "Columnas estrechas (unas 122 unidades): mostrar un título corto por columna y abrir el texto completo del patrón al hacer clic."
     },
-    "clipboard_slot": "clipboard-slot"
+    "clipboard_slot": "clipboard-slot",
+    "reflections_source": {
+      "file": "galeria-data/emaze-reflexiones-borrador.json",
+      "ideas_key": "transfer_ideas_espanol_4_5.rooms",
+      "modes": {
+        "draft": "mostrar verbatim, insignia «Borrador», notas de revisión (issues, keep) e ideas de transferencia (sugerencia de IA)",
+        "publish": "mostrar solo items con approved true, sin notas ni ideas"
+      },
+      "match_by": "items[].maps_to == id de la sala (RA, cerros e IA tienen texto; el aula invertida no tiene reflexión escrita; el item con maps_to null está obsoleto y no se muestra)"
+    }
   },
   "svg_conventions": {
     "viewBox": "0 0 1600 900",

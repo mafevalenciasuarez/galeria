@@ -178,6 +178,11 @@ async function main() {
   // Room data: rooms[].data is relative to galeria-data/.
   const rooms = [...gallery.rooms].sort((a, b) => a.order - b.order);
   const roomData = await Promise.all(rooms.map((r) => fetchJSON('galeria-data/' + r.data).catch(() => null)));
+  // Previous-version reflections. Missing file: the room still opens, those blocks stay pending.
+  const prior = await fetchJSON('galeria-data/emaze-reflexiones-borrador.json').catch((err) => {
+    console.warn(`[final] emaze-reflexiones-borrador.json unavailable (${err.message})`);
+    return null;
+  });
 
   // Ordered stops: intro, rooms by order, then the final reflection room (listed in the directory).
   const stops = [{ id: 'intro', kind: 'intro', title: 'Vestíbulo', svg: gallery.intro.wall_svg }];
@@ -272,6 +277,7 @@ async function main() {
   let busy = false;
   let pendingTab = 0;
   let pendingOpts = {};
+  let openFinalIa = () => {};
   const current = () => stops[currentIndex];
   const stopByWall = (id) => stops.find((s) => s.wallId === id);
   const stopById = (id) => stops.find((s) => s.id === id);
@@ -287,6 +293,19 @@ async function main() {
     }
     const a = stop.data && stop.data.audio;
     return a ? { file: a.file, script: a.script_draft, scriptNote: a.script_note } : null;
+  }
+
+  function aiUseFooter(note, openIa) {
+    const p = document.createElement('p');
+    p.className = 'ai-use-note';
+    p.append(document.createTextNode(note), document.createTextNode(' '));
+    const a = document.createElement('a');
+    a.href = '#uso-de-ia';
+    a.className = 'experience-link';
+    a.textContent = 'Ver declaración de uso de IA';
+    a.addEventListener('click', (e) => { e.preventDefault(); openIa(); });
+    p.append(a);
+    return p;
   }
 
   function toggleSpeaker() {
@@ -322,11 +341,20 @@ async function main() {
     stops.forEach((st) => { if (st.wall.room4) st.wall.room4.setActive(st.index === currentIndex); });
     if (s.wall.room4) s.wall.room4.arrived(frameId);
     if (frameId === 'focus-content' && s.data && !card.isOpen() && !busy) {
-      card.open(s.data, { tab: pendingTab, ...pendingOpts });
+      const note = s.kind === 'room' ? s.data.ai_use_note : '';
+      const footer = note && String(note).trim() ? aiUseFooter(note, () => openFinalIa()) : null;
+      card.open(s.data, { tab: pendingTab, ...pendingOpts, footer });
       pendingTab = 0;
       pendingOpts = {};
     }
+    const zoomed = frameId && frameId !== 'focus-frame' && !String(frameId).startsWith('focus-door');
+    $('btn-unzoom').hidden = !zoomed || card.isOpen();
   };
+
+  $('btn-unzoom').addEventListener('click', () => {
+    const s = current();
+    if (s) camera.goTo(s.wallId, 'focus-frame', { duration: 0.7 });
+  });
 
   // ---------- Corner turns (route corner_90 and corner_90_outside) ----------
   // Each corner splits the route into sides: side s runs from corners[s - 1].b to corners[s].a.
@@ -453,7 +481,7 @@ async function main() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (card.isOpen()) card.close();
-      else if (popup.isOpen()) popup.hide();
+      else if (popup.isOpen()) popup.hide(true);
       else tip.hide();
       return;
     }
@@ -526,6 +554,12 @@ async function main() {
         popup.show({
           label: hs.label,
           actionLabel: 'Abrir «Metodología activa»',
+          onHide: () => {
+            const cur = camera.current;
+            if (cur && cur.frameId && cur.frameId !== 'focus-frame' && cur.frameId !== 'focus-content') {
+              camera.goTo(cur.wallId, 'focus-frame', { duration: 0.7 });
+            }
+          },
           onAction: () => { pendingTab = Math.max(0, tabs.indexOf('Metodología activa')); camera.goTo(s.wallId, 'focus-content'); },
         });
       },
@@ -594,16 +628,18 @@ async function main() {
   // ---------- Final room (works with or without wall-05) ----------
   const finalStop = stops.find((s) => s.kind === 'final');
   if (finalStop) {
-    auditPublish({ gallery, rooms, roomData });
+    auditPublish({ gallery, rooms, roomData, prior });
     const api = initFinal({
       wall: finalStop.wall,
       gallery,
       rooms,
       roomData,
+      prior,
       playAudio: toggleSpeaker,
       openCard: (view) => card.open(null, view),
     });
     finalStop.wall.finalRoom = api;
+    openFinalIa = () => api.open('ia');
   }
 
   // ---------- Debug ----------

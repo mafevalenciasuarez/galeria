@@ -4,6 +4,7 @@
 // reported with console.warn and that feature is skipped. The wall SVG is never edited:
 // the engine only toggles attributes, adds shapes to #wall-extras and adds overlay nodes.
 import { q, placeBox, hotspot } from './walls.js';
+import { placedNotes, noteList, anchorPop } from './ui.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const VB = { w: 1600, h: 900 };
@@ -64,8 +65,7 @@ export function initRoom4({ wall, room, data, isInstant, goTo, openCard }) {
   const lab4 = initClasses();
   const thermo = initThermometers();
   const tool = initPegboard();
-  // Popovers go last so they stack above the other overlay nodes.
-  popovers.forEach((p) => wall.overlay.append(p.el));
+  popovers.forEach((p) => document.body.append(p.el));
 
   return {
     setActive(on) {
@@ -83,25 +83,26 @@ export function initRoom4({ wall, room, data, isInstant, goTo, openCard }) {
 
   // ---------------------------------------------------------------- popovers
   // One small dialog inside the wall: optional title, text, optional action, close.
-  function makePopover({ label, title, text, actionLabel, onAction, box, frame }) {
-    const el = make('div', 'lab-pop');
+  function makePopover({ label, title, text, extra, actionLabel, onAction, frame }) {
+    const el = make('div', 'lab-pop screen-pop');
     el.hidden = true;
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-label', label);
+    const closeBtn = make('button', 'screen-pop-x', '×');
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Cerrar y volver a la pared');
+    el.append(closeBtn);
     if (title) el.append(make('h3', 'lab-pop-title', title));
-    el.append(make('p', 'lab-pop-text', text));
+    if (text) el.append(make('p', 'lab-pop-text', text));
+    if (extra) el.append(extra);
     const row = make('div', 'lab-pop-row');
     let action = null;
     if (actionLabel) {
       action = make('button', 'lab-pop-btn lab-pop-action', actionLabel);
       action.type = 'button';
       row.append(action);
+      el.append(row);
     }
-    const closeBtn = make('button', 'lab-pop-btn', 'Cerrar');
-    closeBtn.type = 'button';
-    row.append(closeBtn);
-    el.append(row);
-    Object.assign(el.style, box);
 
     let opener = null;
     const pop = {
@@ -111,8 +112,9 @@ export function initRoom4({ wall, room, data, isInstant, goTo, openCard }) {
         popovers.forEach((p) => { if (p !== pop) p.close(false); });
         opener = from || document.activeElement;
         el.hidden = false;
+        if (from && from.getBoundingClientRect) anchorPop(el, from);
         (action || closeBtn).focus({ preventScroll: true });
-        if (from) from.setAttribute('aria-expanded', 'true');
+        if (from && from.setAttribute) from.setAttribute('aria-expanded', 'true');
       },
       close(refocus = true) {
         if (el.hidden) return;
@@ -121,9 +123,10 @@ export function initRoom4({ wall, room, data, isInstant, goTo, openCard }) {
         if (refocus && opener && document.contains(opener)) opener.focus({ preventScroll: true });
       },
     };
-    closeBtn.addEventListener('click', () => pop.close());
+    const dismiss = () => { pop.close(); goTo('focus-frame'); };
+    closeBtn.addEventListener('click', dismiss);
     if (action) action.addEventListener('click', () => { pop.close(false); onAction(); });
-    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); pop.close(); } });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); dismiss(); } });
     popovers.push(pop);
     return pop;
   }
@@ -349,14 +352,14 @@ export function initRoom4({ wall, room, data, isInstant, goTo, openCard }) {
       btn.setAttribute('aria-expanded', 'false');
       placeBox(btn, units(nb));
       wall.overlay.append(btn);
+      const thermoNotes = noteList(placedNotes(data, 'termometros'));
       const pop = makePopover({
-        label: '¿Mejoró?', text: T.note, frame: 'focus-thermos',
+        label: '¿Mejoró?', text: T.note, extra: thermoNotes, frame: 'focus-thermos',
         actionLabel: 'Ver lectura crítica',
         onAction: () => openCard('Lectura crítica'),
-        box: { left: nb.x / VB.w * 100 + '%', top: (nb.y + nb.height + 6) / VB.h * 100 + '%', width: '30cqw' },
       });
       btn.addEventListener('click', async () => {
-        if (pop.isOpen()) { pop.close(); return; }
+        if (pop.isOpen()) { pop.close(); await goTo('focus-frame'); return; }
         await goTo('focus-thermos');
         pop.open(btn);
       });
@@ -390,11 +393,9 @@ export function initRoom4({ wall, room, data, isInstant, goTo, openCard }) {
 
     const pop = makePopover({
       label: M.title, title: M.title, text: M.text, frame: 'focus-pegboard',
-      // Left of the empty hook, inside the focus-pegboard frame.
-      box: { left: (b.x - 12) / VB.w * 100 + '%', top: b.y / VB.h * 100 + '%', width: '17cqw', transform: 'translateX(-100%)' },
     });
     btn.addEventListener('click', async () => {
-      if (pop.isOpen()) { pop.close(); return; }
+      if (pop.isOpen()) { pop.close(); await goTo('focus-frame'); return; }
       await goTo('focus-pegboard');
       pop.open(btn);
     });

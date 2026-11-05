@@ -19,7 +19,9 @@
         "No dice que el estudio no midió retención ni comprensión; esa es la crítica y está solo implícita.",
         "Errores de redacción: «se genero», «novedosos», falta puntuación antes de «la verdadera prueba».",
         "No hay transferencia a la práctica propia."
-      ]
+      ],
+      "status": "borrador",
+      "approved": false
     },
     {
       "slide": 2,
@@ -36,7 +38,9 @@
         "Los resultados del cuestionario inicial y final no se presentan en el texto del artículo, así que «inicialmente... sin embargo» no se puede comprobar.",
         "Todo el texto va entre comillas sin fuente: si es una cita hay que referenciarla en APA 7; si es propio, quitar las comillas.",
         "Habla de lo que lograron los estudiantes, no de lo que aprendimos nosotros ni de cómo lo adaptaríamos."
-      ]
+      ],
+      "status": "borrador",
+      "approved": false
     },
     {
       "slide": 3,
@@ -64,7 +68,19 @@
           "En nuestro nivel y área, ¿qué actividad concreta propondríamos para que la ética de los datos y los sesgos no se queden solo en el discurso?",
           "¿Cómo sabríamos si funcionó? ¿Qué evidencia recogeríamos nosotros, a diferencia del estudio?"
         ]
-      }
+      },
+      "status": "borrador",
+      "approved": false
+    },
+    {
+      "slide": null,
+      "color": null,
+      "maps_to": "exp-aula-invertida-mate",
+      "room": "Sala 2",
+      "truncated": false,
+      "verbatim": "Al analizar esta investigación sobre el impacto del aula invertida en el rendimiento académico, resulta evidente el valor de fundamentar nuestra práctica pedagógica en diseños instruccionales estructurados y metodologías activas. Trabajar con un enfoque cuasiexperimental en el nivel secundario —comparando un grupo experimental frente a uno tradicional— permitió medir de forma objetiva y con rigor estadístico cómo las Tecnologías de la Información y la Comunicación (TIC) inciden directamente en el proceso de enseñanza-aprendizaje. La combinación del modelo ADDIE con herramientas accesibles como Classroom, Edpuzzle y recursos multimedia demuestra que el éxito de esta estrategia no radica en la mera digitalización de contenidos, sino en reestructurar los tiempos para priorizar la resolución colaborativa de problemas y la interacción guiada en el aula.\n\nEste análisis me deja una enseñanza profunda sobre el papel tanto del estudiante como del docente: el modelo invertido trasciende la simple visualización de vídeos previos; exige fomentar la autorregulación, la autonomía y un compromiso activo por parte del discente. Los resultados estadísticos —que confirman un incremento significativo en las calificaciones del post-test del grupo experimental frente al control— reafirman que cuando el alumnado asume un rol protagónico en la adquisición de saberes previos y cuenta con una retroalimentación constante, se logra consolidar una comprensión matemática más profunda, superando las limitaciones de la enseñanza tradicional.",
+      "status": "borrador",
+      "approved": false
     },
     {
       "slide": 4,
@@ -77,9 +93,10 @@
       "issues": [
         "Corresponde a EnvironmentCan (2019), que se reemplazó por el aula invertida (Sala 2): no se puede reutilizar para esa sala.",
         "Lee como respuesta a una pregunta guía («Sí, la experiencia responde...») más que como reflexión.",
-        "La sigla APPISES y «Centros de Interés STEM+» no aparecen en el artículo de 2019 que se leyó para la galería; verificar la fuente antes de citarlos.",
-        "Sala 2 (aula invertida) no tiene todavía ninguna reflexión escrita."
-      ]
+        "La sigla APPISES y «Centros de Interés STEM+» no aparecen en el artículo de 2019 que se leyó para la galería; verificar la fuente antes de citarlos."
+      ],
+      "status": "borrador",
+      "approved": false
     }
   ],
   "transfer_ideas_espanol_4_5": {
@@ -116,5 +133,7 @@
         "equidad_o_etica": "Usar solo voces con consentimiento y no guardar las grabaciones; Teachable Machine no trabaja texto, así que el vínculo con Español viene del sonido o de la escritura a mano."
       }
     }
-  }
+  },
+  "publish_rule": "En modo publish solo se muestran los items con approved true. Poner approved en true solo después de que el equipo edite y confirme el texto.",
+  "display_rule": "El texto literal (verbatim) se muestra tal cual, sin corregirlo. Las notas (issues, keep) y las ideas de transferencia son material de revisión: solo en modo draft."
 }

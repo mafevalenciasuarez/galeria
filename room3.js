@@ -3,6 +3,7 @@
 // and the exp-3 data; a missing SVG id is reported with console.warn and that feature is skipped.
 // The wall SVG is never edited: the engine only changes fills, adds stars and adds overlay nodes.
 import { q, placeBox, hotspot } from './walls.js';
+import { placedNotes, anchorPop } from './ui.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const VB = { w: 1600, h: 900 };
@@ -79,9 +80,9 @@ export function initRoom3({ wall, room, data, isInstant, goTo, openCard, playAud
     refresh,
     arrived(frameId, entered) {
       refresh();
-      if (!entered) return;
+      if (frameId === 'focus-frame' && scenePopClose) scenePopClose(false);
+      if (!entered || frameId !== 'focus-frame') return;
       if (lensApi) lensApi.enter();
-      if (scenePopClose) scenePopClose(false);
     },
     garland,
   };
@@ -333,7 +334,9 @@ export function initRoom3({ wall, room, data, isInstant, goTo, openCard, playAud
       pinLayer.append(svgEl('circle', { cx: r3(p.x), cy: r3(p.y), r: 5, fill: '#d6352e', stroke: '#fff', 'stroke-width': 2 }));
       const hit = svgEl('circle', { cx: r3(p.x), cy: r3(p.y), r: 9, fill: 'none' });
       pinLayer.append(hit);
-      const text = `${school.label || 'Escuela'} (ubicación aproximada)`;
+      const mapa = placedNotes(data, 'mapa').map((it) => it.text);
+      const head = `${school.label || 'Escuela'} (ubicación aproximada)`;
+      const text = mapa.length ? `${head}\n${mapa.join('\n')}` : head;
       hotspot(wall, hit, {
         label: text, cls: 'pin-hotspot',
         onActivate: (d) => tip.show(d, text),
@@ -563,16 +566,17 @@ export function initRoom3({ wall, room, data, isInstant, goTo, openCard, playAud
     bar.setAttribute('role', 'group');
     bar.setAttribute('aria-label', 'Escenas de uso');
     placeBox(bar, units(sb));
-    const pop = make('div', 'scene-pop');
+    const pop = make('div', 'scene-pop screen-pop');
     pop.hidden = true;
     pop.setAttribute('role', 'dialog');
     pop.setAttribute('aria-label', 'Escena');
     const popText = make('p', 'scene-pop-text');
     const popNote = make('p', 'scene-pop-note', 'Sin ilustración en esta galería');
-    const popClose = make('button', 'scene-pop-close', 'Cerrar');
+    const popClose = make('button', 'screen-pop-x', '×');
     popClose.type = 'button';
-    pop.append(popText, popNote, popClose);
-    Object.assign(pop.style, { left: sb.x / VB.w * 100 + '%', top: (sb.y - 8) / VB.h * 100 + '%' });
+    popClose.setAttribute('aria-label', 'Cerrar');
+    pop.append(popClose, popText, popNote);
+    document.body.append(pop);
 
     let opener = null;
     scenePopClose = (refocus = true) => {
@@ -605,13 +609,14 @@ export function initRoom3({ wall, room, data, isInstant, goTo, openCard, playAud
         } else {
           popText.textContent = text;
           pop.hidden = false;
+          anchorPop(pop, b);
           popClose.focus();
         }
       });
       bar.append(b);
     });
     if (lensApi) bar.append(lensApi.select);
-    wall.overlay.append(bar, pop);
+    wall.overlay.append(bar);
   }
 
   // ---------------------------------------------------------------- info hotspots

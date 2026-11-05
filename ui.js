@@ -17,6 +17,67 @@ export const el = (tag, props = {}, ...kids) => {
 
 const has = (v) => (Array.isArray(v) ? v.length > 0 : v != null && String(v).trim() !== '');
 
+const legacyWarned = new Set();
+
+function warnLegacyVerify(data) {
+  const id = (data && data.room && (data.room.id || data.room.title)) || 'sala';
+  if (legacyWarned.has(id)) return;
+  legacyWarned.add(id);
+  console.warn(`[verify] ${id}: verify_items missing; showing verify as Nota`);
+}
+
+// verify_items wins. A room that still only has verify is shown as Nota, once per room.
+export function takeVerifyItems(data) {
+  if (data && Array.isArray(data.verify_items)) {
+    return data.verify_items.filter((it) => it && has(it.text));
+  }
+  const legacy = data && Array.isArray(data.verify) ? data.verify.filter((v) => has(v)) : [];
+  if (!legacy.length) return [];
+  warnLegacyVerify(data);
+  return legacy.map((text) => ({ status: 'nota', text, publish: true, where: 'lectura_critica', legacy: true }));
+}
+
+export function placedNotes(data, where) {
+  return takeVerifyItems(data).filter((it) => it.publish === true && it.where === where);
+}
+
+// Visitor list on Lectura crítica: the critical tab, plus the thermometer and map notes.
+export function criticalNotes(data) {
+  const where = new Set(['lectura_critica', 'termometros', 'mapa']);
+  return takeVerifyItems(data).filter((it) => it.publish === true && where.has(it.where));
+}
+
+function resolvedLabel(text) {
+  const s = String(text || '').toLowerCase();
+  if (s.includes('cálculo propio') || s.includes('calculo propio')) return 'Cálculo propio';
+  if (s.includes('confirmado')) return 'Confirmado';
+  return '';
+}
+
+export function noteItem(item, muted) {
+  const li = el('li', { class: 'source-note' + (muted ? ' is-muted' : '') });
+  const status = item && item.status;
+  if (status === 'limite') {
+    li.append(el('span', { class: 'note-mark', 'aria-hidden': 'true' }, '⚠'), el('span', { class: 'note-label' }, 'Límite'));
+  } else if (status === 'nota') {
+    li.append(el('span', { class: 'note-mark', 'aria-hidden': 'true' }, 'ℹ'));
+    if (item.legacy) li.append(el('span', { class: 'note-label' }, 'Nota'));
+  } else if (status === 'resuelto') {
+    const label = resolvedLabel(item.text);
+    li.append(el('span', { class: 'note-mark', 'aria-hidden': 'true' }, '✓'));
+    if (label) li.append(el('span', { class: 'note-label' }, label));
+  } else if (status === 'decision') {
+    li.append(el('span', { class: 'note-mark', 'aria-hidden': 'true' }, '✓'));
+  }
+  li.append(el('span', { class: 'note-text' }, item.text));
+  return li;
+}
+
+export function noteList(items, muted) {
+  if (!items || !items.length) return null;
+  return el('ul', { class: 'source-note-list' }, items.map((it) => noteItem(it, muted)));
+}
+
 // Render a list item that may be a string or an object like {name, description}.
 function itemNodes(it) {
   if (typeof it === 'string') return [it];
@@ -210,8 +271,9 @@ const BUILDERS = {
   'Lectura crítica': (d) => {
     const c = d.critical_analysis || {};
     const freq = d.evidence && d.evidence.coding_frequencies_atlasti;
-    const verify = has(d.verify)
-      ? el('details', { class: 'verify' }, el('summary', {}, 'Pendiente de verificar'), list(d.verify))
+    const notes = criticalNotes(d);
+    const sources = notes.length
+      ? el('section', { class: 'source-notes' }, el('h4', {}, 'Notas sobre las fuentes'), noteList(notes))
       : null;
     return [
       ...sub('Fortalezas', list(c.strengths)),
@@ -226,7 +288,7 @@ const BUILDERS = {
       ...scratchBlock(d.evidence),
       ...sub('Fuente (APA 7)', para(d.source && d.source.apa, 'apa')),
       ...sub('Crédito de los datos del mapa', para(d.evidence && d.evidence.map && d.evidence.map.data_credit, 'apa')),
-      verify,
+      sources,
     ];
   },
 };
@@ -273,6 +335,7 @@ export function createCard({ root, backdrop, tabs, onClose }) {
     else panel.append(el('p', { class: 'muted' }, 'No hay información para esta pestaña en el archivo de datos.'));
     panel.setAttribute('aria-labelledby', `tab-${i}`);
     panel.scrollTop = 0;
+    if (typeof openOpts.onTab === 'function' && spec) openOpts.onTab(spec);
     if (openOpts.scrollTo) {
       const id = openOpts.scrollTo;
       const host = panel;
@@ -294,7 +357,7 @@ export function createCard({ root, backdrop, tabs, onClose }) {
     specList = opts.specs || experienceSpecs;
     opener = document.activeElement;
     const room = (d && d.room) || {};
-    const close = el('button', { type: 'button', class: 'card-close', 'aria-label': 'Cerrar tarjeta' }, 'Cerrar');
+    const close = el('button', { type: 'button', class: 'card-close', 'aria-label': 'Cerrar tarjeta' }, '×');
     close.addEventListener('click', () => closeCard());
     const tablist = el('div', { role: 'tablist', 'aria-label': 'Secciones de la tarjeta', class: 'tablist' });
     buttons = specList.map((spec, i) => {
@@ -348,18 +411,42 @@ export function createCard({ root, backdrop, tabs, onClose }) {
   return { open, close: closeCard, isOpen };
 }
 
+export function anchorPop(el, anchor) {
+  const margin = 12;
+  const r = anchor.getBoundingClientRect();
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  let left = r.left;
+  let top = r.bottom + 8;
+  if (top + h > window.innerHeight - margin) top = r.top - h - 8;
+  if (top < margin) top = margin;
+  if (left + w > window.innerWidth - margin) left = window.innerWidth - w - margin;
+  if (left < margin) left = margin;
+  el.style.left = Math.round(left) + 'px';
+  el.style.top = Math.round(top) + 'px';
+}
+
 export function createPopup({ root, title, action, close }) {
   let handler = null;
+  let onHide = null;
   let opener = null;
-  const hide = () => { root.hidden = true; handler = null; if (opener && document.contains(opener)) opener.focus({ preventScroll: true }); };
-  close.addEventListener('click', hide);
-  action.addEventListener('click', () => { const h = handler; hide(); if (h) h(); });
+  const hide = (runAfter = false) => {
+    root.hidden = true;
+    handler = null;
+    const after = runAfter ? onHide : null;
+    onHide = null;
+    if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+    if (after) after();
+  };
+  close.addEventListener('click', () => hide(true));
+  action.addEventListener('click', () => { const h = handler; hide(false); if (h) h(); });
   return {
-    show({ label, actionLabel, onAction }) {
+    show({ label, actionLabel, onAction, onHide: afterHide }) {
       opener = document.activeElement;
       title.textContent = label;
       action.textContent = actionLabel;
       handler = onAction;
+      onHide = afterHide || null;
       root.hidden = false;
       action.focus();
     },

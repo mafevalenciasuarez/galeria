@@ -223,8 +223,30 @@
     "speaker_position": "top-right"
   },
   "verify": [
-    "Revisar con el artículo si el orden pre y post de la dimensión 1 es una inversión de etiquetas.",
-    "La atribución de Teachable Machine a Carney et al. y a Chen (2020) aparece duplicada en la bibliografía del artículo.",
-    "Confirmar el puntaje máximo de la prueba de 10 preguntas antes de fijar la escala 0 a 10 de los termómetros."
-  ]
+    "Confirmado en la bibliografía del artículo: el mismo trabajo (CHI 2020, DOI 10.1145/3334480.3382839) figura dos veces, una a nombre de Carney et al. y otra solo a nombre de Chen (2020).",
+    "Confirmado en el texto del artículo (Resultados, dimensión 1): dice que la puntuación de la prueba inicial (M = 6,24) fue significativamente MAYOR que la de la posprueba (M = 5,54) y a continuación concluye una mejora; en las conclusiones trata 6,24 como el resultado posterior. La inconsistencia está en el propio artículo; no se sabe si es una inversión de etiquetas.",
+    "El artículo describe una prueba de 10 preguntas; no declara el valor de cada pregunta, así que el máximo de 10 puntos es una suposición razonable (los termómetros usan la escala 0 a 10)."
+  ],
+  "ai_use_note": "Uso de IA: la misma declaración para las cuatro experiencias (ver «Uso de IA» en el aula de reflexión).",
+  "verify_items": [
+    {
+      "status": "limite",
+      "text": "El texto del artículo dice que la puntuación inicial (M = 6,24) fue significativamente mayor que la posterior (M = 5,54) y aun así concluye una mejora; las conclusiones tratan 6,24 como el resultado posterior. La inconsistencia está en el propio artículo.",
+      "publish": true,
+      "where": "termometros"
+    },
+    {
+      "status": "nota",
+      "text": "La prueba tiene 10 preguntas; el artículo no declara el valor de cada una, así que los termómetros usan una escala de 0 a 10 como suposición.",
+      "publish": true,
+      "where": "termometros"
+    },
+    {
+      "status": "limite",
+      "text": "En la bibliografía del artículo el mismo trabajo (CHI 2020, DOI 10.1145/3334480.3382839) aparece dos veces, a nombre de Carney et al. y a nombre de Chen (2020).",
+      "publish": true,
+      "where": "lectura_critica"
+    }
+  ],
+  "verify_items_note": "Estructura nueva de los avisos. status: resuelto, limite, nota o decision; publish true = visible para los visitantes en el lugar indicado en where; false = solo en la sección «Avisos de verificación» en modo draft."
 }
